@@ -102,7 +102,7 @@ struct MindMapView: View {
         // Draw branches
         for (i, branch) in branches.enumerated() {
             let color = branchColors[i % branchColors.count]
-            let angle = (2 * Double.pi / Double(count)) * Double(i) - Double.pi / 2
+            let angle = CGFloat((2 * Double.pi / Double(count)) * Double(i) - Double.pi / 2)
             let branchDistance: CGFloat = 160
 
             let branchCenter = CGPoint(
@@ -128,7 +128,7 @@ struct MindMapView: View {
             // Draw children
             let children = branch.children
             for (j, _) in children.enumerated() {
-                let childAngle = angle + (Double(j) - Double(children.count - 1) / 2) * 0.5
+                let childAngle = angle + CGFloat((Double(j) - Double(children.count - 1) / 2) * 0.5)
                 let childDistance: CGFloat = 120
 
                 let childCenter = CGPoint(
@@ -160,6 +160,87 @@ struct MindMapView: View {
 
 // MARK: - Labels Overlay (separate layer for text)
 
+struct CenterLabelView: View {
+    let text: String
+    let position: CGPoint
+    
+    var body: some View {
+        Text(text)
+            .font(.system(size: 11, weight: .bold))
+            .foregroundColor(.white)
+            .multilineTextAlignment(.center)
+            .frame(width: 90)
+            .position(position)
+    }
+}
+
+struct ChildLabelView: View {
+    let child: String
+    let index: Int
+    let totalChildren: Int
+    let parentAngle: CGFloat
+    let branchCenter: CGPoint
+    let color: Color
+    
+    private var childAngle: CGFloat {
+        parentAngle + CGFloat((Double(index) - Double(totalChildren - 1) / 2) * 0.5)
+    }
+    
+    private var childCenter: CGPoint {
+        CGPoint(
+            x: branchCenter.x + 120 * cos(childAngle),
+            y: branchCenter.y + 120 * sin(childAngle)
+        )
+    }
+    
+    var body: some View {
+        Text(child)
+            .font(.system(size: 9))
+            .foregroundColor(color.opacity(0.9))
+            .multilineTextAlignment(.center)
+            .frame(width: 55)
+            .position(childCenter)
+    }
+}
+
+struct BranchLabelsView: View {
+    let branch: MindMapBranch
+    let index: Int
+    let count: Int
+    let color: Color
+    let center: CGPoint
+    
+    private var angle: CGFloat {
+        CGFloat((2 * Double.pi / Double(count)) * Double(index) - Double.pi / 2)
+    }
+    
+    private var branchCenter: CGPoint {
+        CGPoint(x: center.x + 160 * cos(angle), y: center.y + 160 * sin(angle))
+    }
+
+    var body: some View {
+        Group {
+            Text(branch.label)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+                .frame(width: 64)
+                .position(branchCenter)
+
+            ForEach(Array(branch.children.enumerated()), id: \.offset) { j, child in
+                ChildLabelView(
+                    child: child,
+                    index: j,
+                    totalChildren: branch.children.count,
+                    parentAngle: angle,
+                    branchCenter: branchCenter,
+                    color: color
+                )
+            }
+        }
+    }
+}
+
 struct MindMapLabels: View {
     let data: MindMapData
     let colors: [Color]
@@ -171,46 +252,16 @@ struct MindMapLabels: View {
             let count = data.branches.count
 
             ZStack {
-                // Center label
-                Text(data.center)
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .frame(width: 90)
-                    .position(center)
+                CenterLabelView(text: data.center, position: center)
 
-                // Branch and child labels
                 ForEach(Array(data.branches.enumerated()), id: \.offset) { i, branch in
-                    let color = colors[i % colors.count]
-                    let angle = (2 * Double.pi / Double(count)) * Double(i) - Double.pi / 2
-                    let branchCenter = CGPoint(
-                        x: center.x + 160 * cos(angle),
-                        y: center.y + 160 * sin(angle)
+                    BranchLabelsView(
+                        branch: branch,
+                        index: i,
+                        count: count,
+                        color: colors[i % colors.count],
+                        center: center
                     )
-
-                    // Branch label
-                    Text(branch.label)
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .frame(width: 64)
-                        .position(branchCenter)
-
-                    // Child labels
-                    ForEach(Array(branch.children.enumerated()), id: \.offset) { j, child in
-                        let childAngle = angle + (Double(j) - Double(branch.children.count - 1) / 2) * 0.5
-                        let childCenter = CGPoint(
-                            x: branchCenter.x + 120 * cos(childAngle),
-                            y: branchCenter.y + 120 * sin(childAngle)
-                        )
-
-                        Text(child)
-                            .font(.system(size: 9))
-                            .foregroundColor(color.opacity(0.9))
-                            .multilineTextAlignment(.center)
-                            .frame(width: 55)
-                            .position(childCenter)
-                    }
                 }
             }
         }

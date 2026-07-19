@@ -39,7 +39,7 @@ def get_llm(streaming: bool = False) -> ChatGoogleGenerativeAI:
         raise ValueError("❌ 請設定 GOOGLE_API_KEY 環境變數")
     
     return ChatGoogleGenerativeAI(
-        model="gemini-1.5-pro",
+        model="gemini-2.5-flash",
         google_api_key=api_key,
         temperature=0.3,
         streaming=streaming,

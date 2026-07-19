@@ -1,0 +1,61 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer base {
+  body {
+    @apply bg-background antialiased min-h-screen;
+    font-family: "Georgia", "Times New Roman", serif;
+    color: #e8e0ce;
+  }
+}
+
+/* Old Money color tokens */
+:root {
+  --color-bg: #0d0d0b;
+  --color-surface: #141410;
+  --color-border: #252520;
+  --color-gold: #b8975a;
+  --color-gold-light: #d4b483;
+  --color-cream: #e8e0ce;
+  --color-muted: #6b6454;
+  --color-subtle: #1e1e18;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(184, 151, 90, 0.2) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(184, 151, 90, 0.2);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(184, 151, 90, 0.4);
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@utility animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes blob {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(20px, -30px) scale(1.05); }
+  66%  { transform: translate(-15px, 15px) scale(0.95); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@utility animate-blob { animation: blob 12s infinite ease-in-out; }
+@utility animation-delay-2000 { animation-delay: 2s; }
+@utility animation-delay-4000 { animation-delay: 4s; }

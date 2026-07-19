@@ -10,7 +10,7 @@ enum APIConfig {
     static let tavilyAPIKey = "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"
 
     // MARK: - API Endpoints
-    static let geminiBaseURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent"
+    static let geminiBaseURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
     static let tavilySearchURL = "https://api.tavily.com/search"
 
     // MARK: - Computed

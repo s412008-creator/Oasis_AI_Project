@@ -127,7 +127,7 @@ URL: \(article.url)
 - 論點要引用來源
 - 確保內容準確、客觀
 """
-        return try await generate(prompt: prompt, temperature: 0.3, maxTokens: 8192)
+        return try await generate(prompt: prompt, temperature: 0.3)
     }
 
     // MARK: - Extract Mind Map Data

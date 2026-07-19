@@ -207,7 +207,7 @@ struct ResearchProgressView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .symbolEffect(.bounce)
+                        .optionalBounceEffect()
                 }
 
                 VStack(spacing: 8) {
@@ -257,5 +257,16 @@ struct ResearchProgressView: View {
         guard let currentIndex = order.firstIndex(of: agent.currentStep),
               let stepIndex = order.firstIndex(of: step) else { return false }
         return currentIndex > stepIndex || agent.currentStep == .done
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func optionalBounceEffect() -> some View {
+        if #available(iOS 18.0, *) {
+            self.symbolEffect(.bounce)
+        } else {
+            self
+        }
     }
 }
