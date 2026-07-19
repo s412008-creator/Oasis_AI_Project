@@ -59,3 +59,125 @@
 @utility animate-blob { animation: blob 12s infinite ease-in-out; }
 @utility animation-delay-2000 { animation-delay: 2s; }
 @utility animation-delay-4000 { animation-delay: 4s; }
+
+/* Overview Report Redesign Styles */
+.report-container .section-title {
+  color: var(--color-gold);
+  font-family: "Georgia", serif;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: 400;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+.executive-summary-card {
+  background: var(--color-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.executive-summary-card p {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--color-cream);
+}
+
+.key-findings-section {
+  margin-bottom: 2rem;
+}
+
+.key-findings-grid {
+  margin-top: 1rem;
+}
+
+.key-finding-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 0;
+  list-style: none;
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .key-finding-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.key-finding-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.key-finding-card strong:first-child {
+  color: var(--color-gold);
+  font-size: 1.15rem;
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: normal;
+  border-bottom: 1px solid rgba(184, 151, 90, 0.2);
+  padding-bottom: 0.5rem;
+}
+
+.default-section-card {
+  margin-bottom: 2rem;
+  padding: 0 0.5rem;
+}
+
+/* Inline Highlights */
+.inline-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.5rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-family: system-ui, sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+  margin: 0 4px;
+}
+
+.badge-fact {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.badge-prediction {
+  background: rgba(249, 115, 22, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.inline-citation {
+  color: var(--color-gold-light);
+  font-size: 0.7rem;
+  cursor: pointer;
+  margin-left: 2px;
+  opacity: 0.8;
+}
+.inline-citation:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.inline-metric {
+  color: var(--color-gold);
+  font-weight: bold;
+  background: rgba(184, 151, 90, 0.1);
+  padding: 0 4px;
+  border-radius: 4px;
+}
