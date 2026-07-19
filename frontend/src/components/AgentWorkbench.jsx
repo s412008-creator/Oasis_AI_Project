@@ -33,7 +33,8 @@ const AGENTS = {
 
 const AGENT_ORDER = ['planner', 'research', 'critic', 'writer'];
 
-export default function AgentWorkbench({ logs, activeAgent, done }) {
+export default function AgentWorkbench({ topic, logs, activeAgent, done, report, sources, mindmap }) {
+  const containerRef = useRef(null);
   const agentLogs = {};
   for (const key of AGENT_ORDER) agentLogs[key] = [];
   for (const log of logs) {
@@ -44,7 +45,7 @@ export default function AgentWorkbench({ logs, activeAgent, done }) {
   const activeIdx = AGENT_ORDER.indexOf(activeAgent);
 
   return (
-    <div style={{ display: 'flex', gap: 16, width: '100%', flexWrap: 'wrap' }}>
+    <div ref={containerRef} style={{ display: 'flex', gap: 16, width: '100%', flexWrap: 'wrap' }}>
       {/* Left: Pipeline */}
       <div style={{ width: 200, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {AGENT_ORDER.map((key, idx) => {

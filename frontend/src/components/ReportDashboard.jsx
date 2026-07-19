@@ -61,7 +61,7 @@ const TABS = [
   { key: 'reasoning', label: 'Agent Log',      icon: Terminal },
 ];
 
-export default function ReportDashboard({ report, logs, sources = [], topic = '' }) {
+export default function ReportDashboard({ topic, report, sources = [], logs, mindmap }) {
   const [activeTab, setActiveTab] = useState('overview');
 
   const blocks = extractMermaidBlocks(report);
@@ -105,7 +105,7 @@ export default function ReportDashboard({ report, logs, sources = [], topic = ''
         {activeTab === 'mindmap' && (
           <div className="animate-fade-in-up">
             <div style={{ background: BG, borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden' }}>
-              <CanvasMindMap data={buildMindMapFromSources(topic, sources)} />
+              <CanvasMindMap data={mindmap || { center: topic || "Topic", branches: [] }} />
             </div>
             <div style={{ textAlign: 'center', marginTop: 12, fontSize: 11, color: MUTED }}>
               Scroll to zoom. Click and drag to pan.

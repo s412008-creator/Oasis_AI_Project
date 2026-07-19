@@ -57,6 +57,7 @@ export default function App() {
   const [activeAgent, setActiveAgent] = useState(null);
   const [report, setReport]         = useState(null);
   const [sources, setSources]       = useState([]);
+  const [mindmap, setMindmap]       = useState(null);
   const [state, setState]           = useState('idle');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settings, setSettings]     = useState(getSettings());
@@ -65,7 +66,7 @@ export default function App() {
   const reset = () => {
     if (readerRef.current) { readerRef.current.cancel(); readerRef.current = null; }
     setTopic(''); setLogs([]); setActiveAgent(null);
-    setReport(null); setSources([]); setState('idle');
+    setReport(null); setSources([]); setMindmap(null); setState('idle');
   };
 
   const handleSearch = async (eOrTopic) => {
@@ -77,7 +78,7 @@ export default function App() {
     setState('searching');
     setLogs([{ agent: 'planner', msg: `Initializing Deep Research AI v2.1 — topic: "${query}"` }]);
     setActiveAgent('planner');
-    setReport(null); setSources([]);
+    setReport(null); setSources([]); setMindmap(null);
 
     try {
       const apiBase = 'https://deep-research-ai-api-production.up.railway.app';
@@ -112,6 +113,7 @@ export default function App() {
               else if (data.type === 'result') {
                 setReport(data.report);
                 setSources(data.sources || []);
+                if (data.mindmap) setMindmap(data.mindmap);
                 setActiveAgent(null);
                 setState('done');
               } else if (data.type === 'error') {
@@ -319,7 +321,15 @@ export default function App() {
                   <div style={{ fontSize: 12, color: MUTED, marginTop: 2, fontFamily: 'monospace' }}>4-agent pipeline running autonomously</div>
                 </div>
               </div>
-              <AgentWorkbench logs={logs} activeAgent={activeAgent} done={false} />
+              <AgentWorkbench
+                topic={topic}
+                logs={logs}
+                activeAgent={activeAgent}
+                done={state === 'done'}
+                report={report}
+                sources={sources}
+                mindmap={mindmap}
+              />
             </motion.div>
           )}
 
