@@ -1,6 +1,14 @@
 import Link from 'next/link';
 import { ChevronLeft, Info } from 'lucide-react';
 
+export function generateStaticParams() {
+  return [
+    { slug: 'terms' },
+    { slug: 'privacy' },
+    { slug: 'accessibility' },
+  ];
+}
+
 export default async function GenericPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   const { slug } = params;
