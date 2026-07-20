@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 from agent_logic import MultiAgentResearchOrchestrator
 from oasis_agent import OasisOrchestrator
 from crews.relocation_crew import RelocationCrewOrchestrator
+from crews.document_crew import DocumentCrewOrchestrator
+from crews.matchmaking_crew import MatchmakingCrewOrchestrator
 
 load_dotenv()
 
@@ -89,6 +91,50 @@ async def generate_relocation(req: ResearchRequest):
 
     async def event_generator():
         orchestrator = RelocationCrewOrchestrator()
+        try:
+            async for event in orchestrator.run(topic):
+                payload = json.dumps(event, ensure_ascii=False)
+                yield f"data: {payload}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'msg': str(e)})}\n\n"
+        finally:
+            yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+# ── Module 2: Document Auditor Endpoint ───────────────────────────────────────
+@app.post("/api/document")
+async def generate_document(req: ResearchRequest):
+    topic = req.topic.strip()
+
+    async def event_generator():
+        orchestrator = DocumentCrewOrchestrator()
+        try:
+            async for event in orchestrator.run(topic):
+                payload = json.dumps(event, ensure_ascii=False)
+                yield f"data: {payload}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'msg': str(e)})}\n\n"
+        finally:
+            yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+# ── Module 3: Matchmaking Endpoint ────────────────────────────────────────────
+@app.post("/api/matchmaking")
+async def generate_matchmaking(req: ResearchRequest):
+    topic = req.topic.strip()
+
+    async def event_generator():
+        orchestrator = MatchmakingCrewOrchestrator()
         try:
             async for event in orchestrator.run(topic):
                 payload = json.dumps(event, ensure_ascii=False)

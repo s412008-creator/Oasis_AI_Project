@@ -24,9 +24,9 @@ export default function Home() {
           </div>
           <nav className="hidden md:flex gap-6 text-sm font-medium text-[#0F172A]">
             <Link href="/" className="hover:text-[#C6A87C] transition-colors">Home</Link>
-            <Link href="#" className="hover:text-[#C6A87C] transition-colors">Services</Link>
-            <Link href="#" className="hover:text-[#C6A87C] transition-colors">Regulations</Link>
-            <Link href="#" className="hover:text-[#C6A87C] transition-colors">Help & Support</Link>
+            <Link href="/page/services" className="hover:text-[#C6A87C] transition-colors">Services</Link>
+            <Link href="/page/regulations" className="hover:text-[#C6A87C] transition-colors">Regulations</Link>
+            <Link href="/page/support" className="hover:text-[#C6A87C] transition-colors">Help & Support</Link>
           </nav>
         </div>
       </header>
@@ -70,34 +70,38 @@ export default function Home() {
             </Link>
 
             {/* Module 2: Document Translator */}
-            <div className="gov-card p-8 h-full flex flex-col relative opacity-75 cursor-not-allowed">
-              <div className="absolute top-4 right-4 bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded uppercase">Coming Soon</div>
-              <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center mb-6">
-                <FileText className="w-6 h-6" />
+            <Link href="/document" className="group">
+              <div className="gov-card p-8 h-full flex flex-col relative overflow-hidden">
+                <div className="w-12 h-12 bg-blue-50 text-[#0F172A] rounded-lg flex items-center justify-center mb-6">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <h4 className="text-xl font-bold text-[#0F172A] mb-3">AI Document Auditor</h4>
+                <p className="text-slate-600 mb-8 flex-1">
+                  Upload foreign contracts for instant Arabic translation and UAE commercial law compliance checks.
+                </p>
+                <div className="flex items-center text-[#C6A87C] font-semibold group-hover:translate-x-2 transition-transform">
+                  Access Service <ArrowRight className="w-4 h-4 ml-2" />
+                </div>
+                <div className="absolute top-0 left-0 w-full h-1 bg-[#C6A87C] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
               </div>
-              <h4 className="text-xl font-bold text-slate-400 mb-3">AI Document Auditor</h4>
-              <p className="text-slate-400 mb-8 flex-1">
-                Upload foreign contracts for instant Arabic translation and UAE commercial law compliance checks.
-              </p>
-              <div className="flex items-center text-slate-400 font-semibold">
-                Service Unavailable
-              </div>
-            </div>
+            </Link>
 
             {/* Module 3: B2B Matchmaking */}
-            <div className="gov-card p-8 h-full flex flex-col relative opacity-75 cursor-not-allowed">
-              <div className="absolute top-4 right-4 bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded uppercase">Coming Soon</div>
-              <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center mb-6">
-                <Users className="w-6 h-6" />
+            <Link href="/matchmaking" className="group">
+              <div className="gov-card p-8 h-full flex flex-col relative overflow-hidden">
+                <div className="w-12 h-12 bg-blue-50 text-[#0F172A] rounded-lg flex items-center justify-center mb-6">
+                  <Users className="w-6 h-6" />
+                </div>
+                <h4 className="text-xl font-bold text-[#0F172A] mb-3">B2B Matchmaking Bureau</h4>
+                <p className="text-slate-600 mb-8 flex-1">
+                  Discover potential UAE clients or suppliers and auto-generate bilingual introductory communications.
+                </p>
+                <div className="flex items-center text-[#C6A87C] font-semibold group-hover:translate-x-2 transition-transform">
+                  Access Service <ArrowRight className="w-4 h-4 ml-2" />
+                </div>
+                <div className="absolute top-0 left-0 w-full h-1 bg-[#C6A87C] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
               </div>
-              <h4 className="text-xl font-bold text-slate-400 mb-3">B2B Matchmaking Bureau</h4>
-              <p className="text-slate-400 mb-8 flex-1">
-                Discover potential UAE clients or suppliers and auto-generate bilingual introductory communications.
-              </p>
-              <div className="flex items-center text-slate-400 font-semibold">
-                Service Unavailable
-              </div>
-            </div>
+            </Link>
 
           </div>
         </div>
@@ -116,16 +120,16 @@ export default function Home() {
             <h5 className="text-white font-bold mb-4">Services</h5>
             <ul className="space-y-2 text-sm">
               <li><Link href="/relocation" className="hover:text-white">Relocation Advisory</Link></li>
-              <li><span className="opacity-50">Document Audit</span></li>
-              <li><span className="opacity-50">Business Matchmaking</span></li>
+              <li><Link href="/document" className="hover:text-white">Document Audit</Link></li>
+              <li><Link href="/matchmaking" className="hover:text-white">Business Matchmaking</Link></li>
             </ul>
           </div>
           <div>
             <h5 className="text-white font-bold mb-4">Legal</h5>
             <ul className="space-y-2 text-sm">
-              <li><Link href="#" className="hover:text-white">Terms of Use</Link></li>
-              <li><Link href="#" className="hover:text-white">Privacy Policy</Link></li>
-              <li><Link href="#" className="hover:text-white">Accessibility</Link></li>
+              <li><Link href="/page/terms" className="hover:text-white">Terms of Use</Link></li>
+              <li><Link href="/page/privacy" className="hover:text-white">Privacy Policy</Link></li>
+              <li><Link href="/page/accessibility" className="hover:text-white">Accessibility</Link></li>
             </ul>
           </div>
         </div>
