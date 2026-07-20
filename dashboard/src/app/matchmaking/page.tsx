@@ -31,32 +31,59 @@ export default function MatchmakingBureau() {
     setLogs([]);
     setReport(null);
 
-    const mockLogs = [
-      { agent: "System", msg: "Initializing Matchmaking Audit..." },
-      { agent: "Market Analyst", msg: "Scanning local registries for matching UAE enterprises..." },
-      { agent: "Lead Generator", msg: "Filtering candidates based on required company size and industry..." },
-      { agent: "Cultural Liaison", msg: "Drafting bilingual introductory communications..." },
-      { agent: "System", msg: "Matching complete. Generating Partnership Blueprint..." },
-      { agent: "Success", msg: "Partnership blueprint generated successfully." }
-    ];
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
-    for (let i = 0; i < mockLogs.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 500));
-      setLogs(prev => [...prev, { agent: mockLogs[i].agent, msg: mockLogs[i].msg }]);
+    try {
+      const response = await fetch(`${backendUrl}/api/matchmaking`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, section: '', question: '' })
+      });
+
+      if (!response.body) throw new Error('No body in response');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.substring(6);
+              if (dataStr.trim() === '[DONE]') {
+                setIsLoading(false);
+                setLogs(prev => [...prev, { agent: 'Success', msg: 'Partnership blueprint generated successfully.' }]);
+                break;
+              }
+              try {
+                const data = JSON.parse(dataStr);
+                if (data.type === 'agent_switch') {
+                  setLogs(prev => [...prev, { agent: 'System', msg: `--- Switched to ${data.agent} ---` }]);
+                } else if (data.type === 'agent_log') {
+                  if (data.msg.trim()) {
+                    setLogs(prev => [...prev, { agent: data.agent, msg: data.msg }]);
+                  }
+                } else if (data.type === 'result') {
+                  setReport(data.report);
+                } else if (data.type === 'error') {
+                  setLogs(prev => [...prev, { agent: 'System', msg: `Error: ${data.msg}` }]);
+                }
+              } catch (e) {
+                console.error("Failed to parse JSON:", dataStr);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error during API call", error);
+      setIsLoading(false);
     }
-
-    await new Promise(resolve => setTimeout(resolve, 800));
-    setReport(`
-      <h3>Official Partnership Blueprint</h3>
-      <p>Based on your criteria, our system has identified 3 high-probability partnership targets.</p>
-      <ul>
-        <li><strong>Target 1:</strong> Al Futtaim Group (Technology Division) - High strategic alignment.</li>
-        <li><strong>Target 2:</strong> Emaar Properties (Procurement) - Verified active tenders.</li>
-        <li><strong>Target 3:</strong> Dubai Silicon Oasis Authority - Institutional support available.</li>
-      </ul>
-      <p>Next Step: Download this blueprint and forward the drafted bilingual introductions to your sales team.</p>
-    `);
-    setIsLoading(false);
   };
 
   const simulateDownload = () => {

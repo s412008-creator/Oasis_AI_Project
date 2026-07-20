@@ -31,33 +31,60 @@ export default function CorporateBankingNavigator() {
     setIsLoading(true);
     setLogs([]);
     setReport(null);
-    
-    const mockLogs = [
-      { agent: "System", msg: "Initializing Corporate Banking Audit..." },
-      { agent: "KYC Analyst", msg: "Cross-referencing UBO details and corporate structure..." },
-      { agent: "Risk Assessor", msg: "Evaluating AML risks against UAE Central Bank guidelines..." },
-      { agent: "System", msg: "Pre-screening complete. Generating Banking Roadmap..." },
-      { agent: "Success", msg: "Banking roadmap generated successfully." }
-    ];
 
-    for (let i = 0; i < mockLogs.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 500)); // 1.5 ~ 2 seconds delay
-      setLogs(prev => [...prev, { agent: mockLogs[i].agent, msg: mockLogs[i].msg }]);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
+    try {
+      const response = await fetch(`${backendUrl}/api/banking`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, section: '', question: '' })
+      });
+
+      if (!response.body) throw new Error('No body in response');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.substring(6);
+              if (dataStr.trim() === '[DONE]') {
+                setIsLoading(false);
+                setLogs(prev => [...prev, { agent: 'Success', msg: 'Banking roadmap generated successfully.' }]);
+                break;
+              }
+              try {
+                const data = JSON.parse(dataStr);
+                if (data.type === 'agent_switch') {
+                  setLogs(prev => [...prev, { agent: 'System', msg: `--- Switched to ${data.agent} ---` }]);
+                } else if (data.type === 'agent_log') {
+                  if (data.msg.trim()) {
+                    setLogs(prev => [...prev, { agent: data.agent, msg: data.msg }]);
+                  }
+                } else if (data.type === 'result') {
+                  setReport(data.report);
+                } else if (data.type === 'error') {
+                  setLogs(prev => [...prev, { agent: 'System', msg: `Error: ${data.msg}` }]);
+                }
+              } catch (e) {
+                console.error("Failed to parse JSON:", dataStr);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error during API call", error);
+      setIsLoading(false);
     }
-
-    // Add a fake report after completion
-    await new Promise(resolve => setTimeout(resolve, 800));
-    setReport(`
-      <h3>Official Corporate Banking Roadmap</h3>
-      <p>Based on your profile, our system has identified the most suitable banking partners.</p>
-      <ul>
-        <li><strong>Primary Recommendation:</strong> Emirates NBD or Mashreq Bank.</li>
-        <li><strong>KYC Pre-approval Status:</strong> Low Risk. Standard documentation required.</li>
-        <li><strong>Estimated Account Opening Time:</strong> 2 to 4 weeks upon submission of original documents.</li>
-      </ul>
-      <p>Next Step: Download this roadmap and submit it to our dedicated banking liaisons.</p>
-    `);
-    setIsLoading(false);
   };
 
   const simulateDownload = () => {

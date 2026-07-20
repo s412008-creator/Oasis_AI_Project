@@ -31,31 +31,59 @@ export default function DocumentAuditor() {
     setLogs([]);
     setReport(null);
 
-    const mockLogs = [
-      { agent: "System", msg: "Initializing Legal Document Audit..." },
-      { agent: "Legal Translator", msg: "Translating provided clauses into official Arabic..." },
-      { agent: "Compliance Auditor", msg: "Cross-referencing clauses against UAE Commercial Companies Law..." },
-      { agent: "System", msg: "Audit complete. Compiling discrepancy report..." },
-      { agent: "Success", msg: "Compliance report generated successfully." }
-    ];
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
-    for (let i = 0; i < mockLogs.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 500));
-      setLogs(prev => [...prev, { agent: mockLogs[i].agent, msg: mockLogs[i].msg }]);
+    try {
+      const response = await fetch(`${backendUrl}/api/document`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, section: '', question: '' })
+      });
+
+      if (!response.body) throw new Error('No body in response');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.substring(6);
+              if (dataStr.trim() === '[DONE]') {
+                setIsLoading(false);
+                setLogs(prev => [...prev, { agent: 'Success', msg: 'Compliance report generated successfully.' }]);
+                break;
+              }
+              try {
+                const data = JSON.parse(dataStr);
+                if (data.type === 'agent_switch') {
+                  setLogs(prev => [...prev, { agent: 'System', msg: `--- Switched to ${data.agent} ---` }]);
+                } else if (data.type === 'agent_log') {
+                  if (data.msg.trim()) {
+                    setLogs(prev => [...prev, { agent: data.agent, msg: data.msg }]);
+                  }
+                } else if (data.type === 'result') {
+                  setReport(data.report);
+                } else if (data.type === 'error') {
+                  setLogs(prev => [...prev, { agent: 'System', msg: `Error: ${data.msg}` }]);
+                }
+              } catch (e) {
+                console.error("Failed to parse JSON:", dataStr);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error during API call", error);
+      setIsLoading(false);
     }
-
-    await new Promise(resolve => setTimeout(resolve, 800));
-    setReport(`
-      <h3>Official Document Audit Report</h3>
-      <p>Your contract has been analyzed against UAE Federal Laws.</p>
-      <ul>
-        <li><strong>Translation Integrity:</strong> Accurate. Valid for local notarization.</li>
-        <li><strong>Commercial Compliance:</strong> No major violations detected in the provided excerpt.</li>
-        <li><strong>Risk Assessment:</strong> Recommended to add a standard arbitration clause referencing Dubai Courts.</li>
-      </ul>
-      <p>Next Step: Download this report for your official legal records.</p>
-    `);
-    setIsLoading(false);
   };
 
   const simulateDownload = () => {

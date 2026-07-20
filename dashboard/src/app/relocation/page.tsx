@@ -35,33 +35,61 @@ export default function SmartRelocationConcierge() {
     setLogs([]);
     setReport(null);
     
-    const mockLogs = [
-      { agent: "System", msg: "Initializing Multi-Agent Audit System..." },
-      { agent: "Legal Expert", msg: "Analyzing company profile against UAE Federal Law..." },
-      { agent: "Financial Advisor", msg: "Calculating tax implications for Dubai Free Zone..." },
-      { agent: "System", msg: "Cross-referencing complete. Generating Blueprint..." },
-      { agent: "Success", msg: "Blueprint generated successfully." }
-    ];
+    const topic = `Industry: ${industry}. Team Size: ${teamSize}. Expected Revenue: ${revenue}. Target Market: ${market}. Please provide a full relocation and setup analysis for Dubai.`;
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
-    for (let i = 0; i < mockLogs.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 500)); // 1.5 ~ 2 seconds delay
-      setLogs(prev => [...prev, { agent: mockLogs[i].agent, msg: mockLogs[i].msg }]);
+    try {
+      const response = await fetch(`${backendUrl}/api/relocation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, section: '', question: '' })
+      });
+
+      if (!response.body) throw new Error('No body in response');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.substring(6);
+              if (dataStr.trim() === '[DONE]') {
+                setIsLoading(false);
+                setLogs(prev => [...prev, { agent: 'Success', msg: 'Blueprint generated successfully.' }]);
+                break;
+              }
+              try {
+                const data = JSON.parse(dataStr);
+                if (data.type === 'agent_switch') {
+                  setLogs(prev => [...prev, { agent: 'System', msg: `--- Switched to ${data.agent} ---` }]);
+                } else if (data.type === 'agent_log') {
+                  // Filter out empty or pure whitespace logs
+                  if (data.msg.trim()) {
+                    setLogs(prev => [...prev, { agent: data.agent, msg: data.msg }]);
+                  }
+                } else if (data.type === 'result') {
+                  setReport(data.report);
+                } else if (data.type === 'error') {
+                  setLogs(prev => [...prev, { agent: 'System', msg: `Error: ${data.msg}` }]);
+                }
+              } catch (e) {
+                console.error("Failed to parse JSON:", dataStr);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error during API call", error);
+      setIsLoading(false);
     }
-
-    // Add a fake report after completion
-    await new Promise(resolve => setTimeout(resolve, 800));
-    setReport(`
-      <h3>Dubai Free Zone Executive Blueprint</h3>
-      <p>Based on your profile, our system strongly recommends the <strong>DMCC Free Zone</strong>.</p>
-      <ul>
-        <li><strong>Industry Match:</strong> Perfectly aligned with ${industry} regulations.</li>
-        <li><strong>Visas & Workspace:</strong> Covers your team requirement (${teamSize}) with a Flexi-Desk setup.</li>
-        <li><strong>Tax Implications:</strong> Projected 0% corporate tax for your ${revenue} revenue under current UAE frameworks.</li>
-        <li><strong>Market Access:</strong> Strategic positioning for ${market} outreach.</li>
-      </ul>
-      <p>Next Step: Download this blueprint and submit it to our designated incorporation officers.</p>
-    `);
-    setIsLoading(false);
   };
 
   const simulateDownload = () => {
