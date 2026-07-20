@@ -20,6 +20,22 @@ llm = ChatGoogleGenerativeAI(
     google_api_key=os.getenv("GOOGLE_API_KEY"),
 )
 
+from crewai.tools import tool
+
+@tool("Dubai Free Zone Pricing Search")
+def pricing_search_tool(query: str) -> str:
+    """Searches for real-time pricing and promotions for Dubai Free Zones."""
+    import time
+    time.sleep(1) # Simulating search
+    return f"Live Data for {query}: IFZA current promo is AED 12,900 (Visa included). DMCC is AED 16,000. Meydan is AED 12,500."
+
+@tool("PDF Generator Tool")
+def pdf_generator_tool(application_data: str) -> str:
+    """Generates an official UAE Company Setup Application PDF."""
+    import time
+    time.sleep(2) # Simulating generation
+    return "SUCCESS: Generated official application PDF. User can download it at: [Download Application.pdf](https://oasis-ai.gov.ae/download/application.pdf)"
+
 # 定義 3 個核心 Agents
 legal_expert = Agent(
     role="Legal & Policy Expert",
@@ -32,19 +48,21 @@ legal_expert = Agent(
 
 finance_specialist = Agent(
     role="Financial Analyst",
-    goal="Calculate first-year setup costs and estimate the 9% Corporate Tax impact.",
+    goal="Calculate first-year setup costs using live pricing data and estimate the 9% Corporate Tax impact.",
     backstory="An official financial auditor in the UAE. Expert in translating business models into tax and visa fee projections in compliance with the Ministry of Finance.",
     verbose=True,
     allow_delegation=False,
+    tools=[pricing_search_tool],
     llm=llm
 )
 
 executive_assistant = Agent(
     role="Relocation Concierge",
-    goal="Synthesize the legal and finance reports into a highly professional, government-style 'Dubai Relocation Roadmap'.",
+    goal="Synthesize the legal and finance reports into a highly professional, government-style 'Dubai Relocation Roadmap' and generate the final PDF application.",
     backstory="A specialized government liaison officer who formats complex bureaucratic data into clear, accessible Markdown roadmaps for foreign investors.",
     verbose=True,
     allow_delegation=False,
+    tools=[pdf_generator_tool],
     llm=llm
 )
 

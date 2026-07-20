@@ -13,6 +13,7 @@ from oasis_agent import OasisOrchestrator
 from crews.relocation_crew import RelocationCrewOrchestrator
 from crews.document_crew import DocumentCrewOrchestrator
 from crews.matchmaking_crew import MatchmakingCrewOrchestrator
+from crews.banking_crew import BankingCrewOrchestrator
 
 load_dotenv()
 
@@ -84,10 +85,33 @@ async def generate_oasis(req: ResearchRequest):
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
 
+def get_global_context():
+    try:
+        if os.path.exists("context.json"):
+            with open("context.json", "r") as f:
+                return json.load(f).get("history", [])
+    except Exception:
+        pass
+    return []
+
+def append_to_context(topic: str):
+    history = get_global_context()
+    history.append(topic)
+    with open("context.json", "w") as f:
+        json.dump({"history": history[-3:]}, f, ensure_ascii=False) # Keep last 3
+
+def build_contextual_topic(base_topic: str) -> str:
+    history = get_global_context()
+    if history:
+        ctx_str = " | ".join(history)
+        return f"[User Context from previous modules: {ctx_str}]\n\nCurrent Request: {base_topic}"
+    return base_topic
+
 # ── Module 1: Relocation Concierge Endpoint ───────────────────────────────────
 @app.post("/api/relocation")
 async def generate_relocation(req: ResearchRequest):
     topic = req.topic.strip()
+    append_to_context(topic) # Save to memory
 
     async def event_generator():
         orchestrator = RelocationCrewOrchestrator()
@@ -110,11 +134,13 @@ async def generate_relocation(req: ResearchRequest):
 @app.post("/api/document")
 async def generate_document(req: ResearchRequest):
     topic = req.topic.strip()
+    contextual_topic = build_contextual_topic(topic)
+    append_to_context(topic)
 
     async def event_generator():
         orchestrator = DocumentCrewOrchestrator()
         try:
-            async for event in orchestrator.run(topic):
+            async for event in orchestrator.run(contextual_topic):
                 payload = json.dumps(event, ensure_ascii=False)
                 yield f"data: {payload}\n\n"
         except Exception as e:
@@ -132,11 +158,13 @@ async def generate_document(req: ResearchRequest):
 @app.post("/api/matchmaking")
 async def generate_matchmaking(req: ResearchRequest):
     topic = req.topic.strip()
+    contextual_topic = build_contextual_topic(topic)
+    append_to_context(topic)
 
     async def event_generator():
         orchestrator = MatchmakingCrewOrchestrator()
         try:
-            async for event in orchestrator.run(topic):
+            async for event in orchestrator.run(contextual_topic):
                 payload = json.dumps(event, ensure_ascii=False)
                 yield f"data: {payload}\n\n"
         except Exception as e:
@@ -150,37 +178,17 @@ async def generate_matchmaking(req: ResearchRequest):
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
 
-# ── Module 2: Document Auditor Endpoint ───────────────────────────────────────
-@app.post("/api/document")
-async def generate_document(req: ResearchRequest):
+# ── Module 4: Banking Navigator Endpoint ──────────────────────────────────────
+@app.post("/api/banking")
+async def generate_banking(req: ResearchRequest):
     topic = req.topic.strip()
+    contextual_topic = build_contextual_topic(topic)
+    append_to_context(topic)
 
     async def event_generator():
-        orchestrator = DocumentCrewOrchestrator()
+        orchestrator = BankingCrewOrchestrator()
         try:
-            async for event in orchestrator.run(topic):
-                payload = json.dumps(event, ensure_ascii=False)
-                yield f"data: {payload}\n\n"
-        except Exception as e:
-            yield f"data: {json.dumps({'type': 'error', 'msg': str(e)})}\n\n"
-        finally:
-            yield "data: [DONE]\n\n"
-
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-    )
-
-# ── Module 3: Matchmaking Endpoint ────────────────────────────────────────────
-@app.post("/api/matchmaking")
-async def generate_matchmaking(req: ResearchRequest):
-    topic = req.topic.strip()
-
-    async def event_generator():
-        orchestrator = MatchmakingCrewOrchestrator()
-        try:
-            async for event in orchestrator.run(topic):
+            async for event in orchestrator.run(contextual_topic):
                 payload = json.dumps(event, ensure_ascii=False)
                 yield f"data: {payload}\n\n"
         except Exception as e:

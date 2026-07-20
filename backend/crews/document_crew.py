@@ -17,28 +17,43 @@ llm = ChatGoogleGenerativeAI(
     google_api_key=os.getenv("GOOGLE_API_KEY"),
 )
 
-translator = Agent(
-    role="Legal Translator",
-    goal="Translate the provided document into clear Arabic and English, preserving legal terminology.",
-    backstory="A certified bilingual legal translator in Dubai courts, ensuring strict accuracy for foreign documents.",
+from crewai.tools import tool
+
+@tool("UAE Commercial Law RAG Search")
+def uae_law_rag_tool(query: str) -> str:
+    """Searches the UAE Federal Commercial Companies Law database for compliance rules. Use this to fact-check any contract clauses."""
+    import os
+    try:
+        with open("uae_commercial_law.txt", "r") as f:
+            content = f.read()
+        return f"Database Content:\n{content}\n\nSearch result for '{query}': Please analyze the content above to verify compliance."
+    except Exception as e:
+        return f"Error reading legal database: {str(e)}"
+
+# 定義 3 個核心 Agents
+legal_translator = Agent(
+    role="Certified Legal Translator",
+    goal="Translate the provided business contract into accurate, formal Arabic and highlight key legal terms.",
+    backstory="A sworn legal translator certified by the UAE Ministry of Justice, specializing in complex commercial contracts.",
     verbose=True,
     allow_delegation=False,
     llm=llm
 )
 
 compliance_auditor = Agent(
-    role="Compliance Auditor",
-    goal="Audit the translated document against UAE Federal Commercial Companies Law.",
-    backstory="A strict compliance officer at the UAE Ministry of Economy. Knows exactly what clauses are prohibited or required.",
+    role="UAE Compliance Auditor",
+    goal="Cross-reference the contract clauses against UAE Federal Commercial Companies Law to identify missing clauses or illegal terms. MUST USE THE RAG TOOL.",
+    backstory="A former judge at the Dubai Courts, known for a meticulous eye for regulatory loopholes and non-compete clause violations.",
     verbose=True,
     allow_delegation=False,
+    tools=[uae_law_rag_tool],
     llm=llm
 )
 
 risk_assessor = Agent(
-    role="Risk Assessor",
-    goal="Synthesize the audit findings into an official UAE 'Legal Risk & Compliance Report'.",
-    backstory="A senior risk mitigation consultant who finalizes government reports in Markdown format.",
+    role="Risk & Contract Strategist",
+    goal="Synthesize the translation and compliance audit into a 'Contract Risk Assessment Report' with actionable recommendations.",
+    backstory="A top-tier corporate lawyer helping foreign investors negotiate safely with UAE local partners without getting trapped in unfair terms.",
     verbose=True,
     allow_delegation=False,
     llm=llm
@@ -75,7 +90,7 @@ class DocumentCrewOrchestrator:
         task1 = Task(
             description=f"Review the uploaded text: '{document_content}'. Provide a summary of the translation into Arabic and English.",
             expected_output="A brief translation summary highlighting key legal clauses.",
-            agent=translator
+            agent=legal_translator
         )
 
         task2 = Task(
@@ -91,7 +106,7 @@ class DocumentCrewOrchestrator:
         )
 
         crew = Crew(
-            agents=[translator, compliance_auditor, risk_assessor],
+            agents=[legal_translator, compliance_auditor, risk_assessor],
             tasks=[task1, task2, task3],
             process=Process.sequential,
             verbose=True

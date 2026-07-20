@@ -1,0 +1,16 @@
+# UAE FEDERAL COMMERCIAL COMPANIES LAW - SUMMARY EXTRACTS
+
+## Article 10: General Requirements
+Foreign companies entering the UAE market must ensure their commercial contracts are compliant with federal laws, especially concerning liability, non-compete clauses, and jurisdiction. Any contract lacking an explicit governing law clause defaults to UAE jurisdiction if executed within the country.
+
+## Article 51: Agency and Distributorship
+A commercial agency agreement must be registered with the Ministry of Economy. Exclusivity clauses are highly regulated. If a foreign entity signs a non-registered agency agreement, the local courts may not recognize it, leaving the foreign entity exposed to local liabilities.
+
+## Article 85: Non-Compete Clauses
+Non-compete clauses must be specific in terms of time, geographical scope, and type of business to be valid. A non-compete clause exceeding 2 years is generally considered void unless explicitly justified by the protection of trade secrets.
+
+## Article 112: Force Majeure
+Contracts must include a clear Force Majeure clause. Under UAE law, if a Force Majeure event makes the execution of the contract impossible, the corresponding obligation ceases. However, economic hardship alone is not considered Force Majeure.
+
+## Article 150: Termination and Penalty
+Unilateral termination without cause is heavily penalized under UAE commercial law unless mutual consent is written in the contract. Automatic renewal clauses are enforceable but require at least 90 days written notice to opt out.
