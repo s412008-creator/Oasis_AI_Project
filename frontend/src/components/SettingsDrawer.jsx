@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Key, Cpu, Globe, Layers } from 'lucide-react';
 
-const BG     = '#0d0d0b';
+const BG     = '#000000';
 const SURFACE= '#141410';
 const BORDER = '#252520';
 const GOLD   = '#b8975a';

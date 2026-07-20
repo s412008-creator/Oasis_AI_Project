@@ -8,7 +8,7 @@ export const exportToPDF = (elementId, filename = 'DeepResearch-Report.pdf') => 
     margin:       [15, 15, 15, 15],
     filename:     filename,
     image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#09090b' },
+    html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#000000' },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 

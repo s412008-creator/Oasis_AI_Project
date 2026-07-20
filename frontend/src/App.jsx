@@ -10,7 +10,7 @@ import {
   ArrowRight, PieChart, FileText, Share2, Loader, RotateCcw
 } from 'lucide-react';
 
-const BG     = '#0d0d0b';
+const BG     = '#000000';
 const SURFACE= '#141410';
 const BORDER = '#252520';
 const GOLD   = '#b8975a';
