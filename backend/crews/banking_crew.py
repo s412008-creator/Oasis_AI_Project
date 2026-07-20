@@ -12,7 +12,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 load_dotenv()
 
 llm = ChatGoogleGenerativeAI(
-    model=os.getenv("GEMINI_MODEL", "gemini-1.5-pro"),
+    model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
     temperature=0.2,
     google_api_key=os.getenv("GOOGLE_API_KEY"),
 )

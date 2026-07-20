@@ -13,9 +13,12 @@ from tavily import TavilyClient
 
 load_dotenv()
 
-# 初始化 Gemini
+# 初始化 Gemini — shared by all three agents below (Legal Expert, Financial
+# Analyst, Relocation Concierge/"Action"). Defaults to gemini-3.5-flash
+# (Gemini 3 family, GA); override with GEMINI_MODEL, e.g. gemini-3.1-pro-preview
+# for the Pro tier.
 llm = ChatGoogleGenerativeAI(
-    model=os.getenv("GEMINI_MODEL", "gemini-1.5-pro"),
+    model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
     temperature=0.2,
     google_api_key=os.getenv("GOOGLE_API_KEY"),
 )

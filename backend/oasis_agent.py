@@ -20,7 +20,7 @@ class OasisState(TypedDict):
 
 def _llm(temperature: float = 0.2):
     return ChatGoogleGenerativeAI(
-        model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+        model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
         temperature=temperature,
         google_api_key=os.getenv("GOOGLE_API_KEY"),
     )

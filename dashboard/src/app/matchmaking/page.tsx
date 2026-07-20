@@ -1,8 +1,9 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Users, CheckCircle2, ChevronRight, ChevronLeft, Download, Terminal } from 'lucide-react';
+import { ShieldCheck, Users, CheckCircle2, ChevronRight, ChevronLeft, Download, Terminal, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import { streamAgentEndpoint } from '@/lib/api';
 
 interface AgentLog {
   agent: string;
@@ -15,6 +16,7 @@ export default function MatchmakingBureau() {
   const [logs, setLogs] = useState<AgentLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const logsEndRef = useRef<HTMLDivElement>(null);
 
@@ -31,55 +33,21 @@ export default function MatchmakingBureau() {
     setIsLoading(true);
     setLogs([]);
     setReport(null);
+    setApiError(null);
 
-    try {
-      const response = await fetch('http://localhost:8000/api/matchmaking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, section: '', question: '' })
-      });
-
-      if (!response.body) throw new Error('No body in response');
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-
-      while (!done) {
-        const { value, done: readerDone } = await reader.read();
-        done = readerDone;
-        if (value) {
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n\n');
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const dataStr = line.substring(6);
-              if (dataStr.trim() === '[DONE]') {
-                setIsLoading(false);
-                break;
-              }
-              try {
-                const data = JSON.parse(dataStr);
-                if (data.type === 'agent_switch') {
-                  setLogs(prev => [...prev, { agent: 'SYSTEM', msg: `--- Switched to ${data.agent} ---`, type: 'agent_switch' }]);
-                } else if (data.type === 'agent_log') {
-                  setLogs(prev => [...prev, { agent: data.agent, msg: data.msg, type: 'agent_log' }]);
-                } else if (data.type === 'result') {
-                  setReport(data.report);
-                } else if (data.type === 'error') {
-                  setLogs(prev => [...prev, { agent: 'SYSTEM', msg: `Error: ${data.msg}`, type: 'agent_log' }]);
-                }
-              } catch (e) {
-                console.error("Failed to parse JSON:", dataStr);
-              }
-            }
-          }
-        }
+    await streamAgentEndpoint('/api/matchmaking', { topic, section: '', question: '' }, (data) => {
+      if (data.type === 'agent_switch') {
+        setLogs(prev => [...prev, { agent: 'SYSTEM', msg: `--- Switched to ${data.agent} ---`, type: 'agent_switch' }]);
+      } else if (data.type === 'agent_log') {
+        setLogs(prev => [...prev, { agent: data.agent!, msg: data.msg!, type: 'agent_log' }]);
+      } else if (data.type === 'result') {
+        setReport(data.report!);
+      } else if (data.type === 'error') {
+        setApiError(data.msg || 'The AI backend returned an unknown error.');
       }
-    } catch (error) {
-      console.error("Error during API call", error);
-      setIsLoading(false);
-    }
+    });
+
+    setIsLoading(false);
   };
 
   const getAgentColor = (agentName: string) => {
@@ -182,13 +150,21 @@ export default function MatchmakingBureau() {
 
             {/* Terminal Body */}
             <div className="p-6 font-mono text-sm overflow-y-auto flex-1 bg-[#050A15] space-y-3">
-              {logs.length === 0 && !isLoading && !report && (
+              {logs.length === 0 && !isLoading && !report && !apiError && (
                 <div className="text-slate-600 flex flex-col items-center justify-center h-full space-y-4">
                   <Terminal className="w-12 h-12 opacity-30" />
                   <p>Awaiting product details to launch matchmaking agents...</p>
                 </div>
               )}
-              
+
+              {apiError && (
+                <div className="flex flex-col items-center justify-center h-full text-center space-y-3 px-4">
+                  <AlertTriangle className="w-10 h-10 text-red-400" />
+                  <p className="text-red-400 font-bold">Backend Unreachable</p>
+                  <p className="text-slate-400 max-w-md">{apiError}</p>
+                </div>
+              )}
+
               <AnimatePresence>
                 {logs.map((log, idx) => (
                   <motion.div 

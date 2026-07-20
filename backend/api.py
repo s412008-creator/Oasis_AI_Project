@@ -1,4 +1,4 @@
-    import asyncio
+import asyncio
 import json
 import os
 from fastapi import FastAPI
@@ -19,9 +19,18 @@ load_dotenv()
 
 app = FastAPI(title="DeepResearch AI API v2.0 — Multi-Agent")
 
+# Origins allowed to call this API. Add production frontend origins via the
+# ALLOWED_ORIGINS env var (comma-separated) so new deployments don't require
+# a code change.
+_default_origins = [
+    "https://oasis-ai-eop.pages.dev",
+    "http://localhost:3000",
+]
+_extra_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_default_origins + _extra_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -214,7 +223,7 @@ async def followup(req: FollowupRequest):
     async def stream():
         try:
             llm = ChatGoogleGenerativeAI(
-                model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+                model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
                 temperature=0.3,
                 google_api_key=os.getenv("GOOGLE_API_KEY"),
             )
