@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronLeft, BookOpen, Scale, Landmark, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, BookOpen, Scale, Landmark, CheckCircle2, Building2 } from 'lucide-react';
 
 export default function RegulationsPage() {
   return (
