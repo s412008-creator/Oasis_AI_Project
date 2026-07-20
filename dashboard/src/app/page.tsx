@@ -1,35 +1,12 @@
 import Link from 'next/link';
 import { Building2, FileText, Users, ArrowRight, ShieldCheck } from 'lucide-react';
+import Header from '../components/Header';
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col font-sans">
-      {/* Official Header */}
-      <header className="bg-white border-b border-slate-200">
-        <div className="bg-[#0F172A] text-white py-1">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center text-xs font-medium">
-            <ShieldCheck className="w-4 h-4 mr-2 text-[#C6A87C]" />
-            Official Portal of the Dubai Digital Infrastructure
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#0F172A] text-white rounded flex items-center justify-center font-bold text-lg">
-              AE
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-[#0F172A] leading-tight">Oasis.ai</h1>
-              <p className="text-sm text-slate-500">Government Services Portal</p>
-            </div>
-          </div>
-          <nav className="hidden md:flex gap-6 text-sm font-medium text-[#0F172A]">
-            <Link href="/" className="hover:text-[#C6A87C] transition-colors">Home</Link>
-            <Link href="/page/services" className="hover:text-[#C6A87C] transition-colors">Services</Link>
-            <Link href="/page/regulations" className="hover:text-[#C6A87C] transition-colors">Regulations</Link>
-            <Link href="/page/support" className="hover:text-[#C6A87C] transition-colors">Help & Support</Link>
-          </nav>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col font-sans bg-[#F9FAFB]">
+      {/* Official Header Component */}
+      <Header />
 
       {/* Hero Section */}
       <section className="bg-white border-b border-slate-200 py-16">
