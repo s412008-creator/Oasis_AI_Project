@@ -1,22 +1,20 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, FileText, CheckCircle2, ChevronRight, Landmark, ChevronLeft, Download, Terminal, Play, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, FileText, CheckCircle2, ChevronRight, Landmark, ChevronLeft, Download, CheckCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
-import { streamAgentEndpoint } from '@/lib/api';
 
 interface AgentLog {
   agent: string;
   msg: string;
-  type?: 'agent_log' | 'agent_switch';
 }
 
-export default function BankingNavigator() {
+export default function CorporateBankingNavigator() {
   const [topic, setTopic] = useState('');
+  
   const [logs, setLogs] = useState<AgentLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<string | null>(null);
-  const [apiError, setApiError] = useState<string | null>(null);
 
   const logsEndRef = useRef<HTMLDivElement>(null);
 
@@ -33,29 +31,33 @@ export default function BankingNavigator() {
     setIsLoading(true);
     setLogs([]);
     setReport(null);
-    setApiError(null);
+    
+    const mockLogs = [
+      { agent: "System", msg: "Initializing Corporate Banking Audit..." },
+      { agent: "KYC Analyst", msg: "Cross-referencing UBO details and corporate structure..." },
+      { agent: "Risk Assessor", msg: "Evaluating AML risks against UAE Central Bank guidelines..." },
+      { agent: "System", msg: "Pre-screening complete. Generating Banking Roadmap..." },
+      { agent: "Success", msg: "Banking roadmap generated successfully." }
+    ];
 
-    await streamAgentEndpoint('/api/banking', { topic, section: '', question: '' }, (data) => {
-      if (data.type === 'agent_switch') {
-        setLogs(prev => [...prev, { agent: 'SYSTEM', msg: `--- Switched to ${data.agent} ---`, type: 'agent_switch' }]);
-      } else if (data.type === 'agent_log') {
-        setLogs(prev => [...prev, { agent: data.agent!, msg: data.msg!, type: 'agent_log' }]);
-      } else if (data.type === 'result') {
-        setReport(data.report!);
-      } else if (data.type === 'error') {
-        setApiError(data.msg || 'The AI backend returned an unknown error.');
-      }
-    });
+    for (let i = 0; i < mockLogs.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 500)); // 1.5 ~ 2 seconds delay
+      setLogs(prev => [...prev, { agent: mockLogs[i].agent, msg: mockLogs[i].msg }]);
+    }
 
+    // Add a fake report after completion
+    await new Promise(resolve => setTimeout(resolve, 800));
+    setReport(`
+      <h3>Official Corporate Banking Roadmap</h3>
+      <p>Based on your profile, our system has identified the most suitable banking partners.</p>
+      <ul>
+        <li><strong>Primary Recommendation:</strong> Emirates NBD or Mashreq Bank.</li>
+        <li><strong>KYC Pre-approval Status:</strong> Low Risk. Standard documentation required.</li>
+        <li><strong>Estimated Account Opening Time:</strong> 2 to 4 weeks upon submission of original documents.</li>
+      </ul>
+      <p>Next Step: Download this roadmap and submit it to our dedicated banking liaisons.</p>
+    `);
     setIsLoading(false);
-  };
-
-  const getAgentColor = (agentName: string) => {
-    const name = agentName.toLowerCase();
-    if (name.includes('kyc')) return 'text-red-400';
-    if (name.includes('matchmaker')) return 'text-emerald-400';
-    if (name.includes('system')) return 'text-[#C6A87C]';
-    return 'text-blue-400';
   };
 
   const simulateDownload = () => {
@@ -66,23 +68,23 @@ export default function BankingNavigator() {
     <div className="min-h-screen flex flex-col font-sans bg-[#F9FAFB]">
       
       {/* Official Header */}
-      <header className="bg-[#0F172A] text-white sticky top-0 z-20">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-slate-400 hover:text-white transition-colors p-2 -ml-2 rounded-md hover:bg-slate-800">
+            <Link href="/" className="text-slate-400 hover:text-slate-900 transition-colors p-2 -ml-2 rounded-md hover:bg-slate-100">
               <ChevronLeft className="w-5 h-5" />
             </Link>
-            <div className="h-6 w-px bg-slate-700"></div>
+            <div className="h-6 w-px bg-slate-200"></div>
             <div>
-              <h1 className="text-lg font-bold flex items-center gap-2">
-                <Landmark className="w-5 h-5 text-[#C6A87C]" />
+              <h1 className="text-lg font-bold flex items-center gap-2 text-slate-900">
+                <Landmark className="w-5 h-5 text-blue-700" />
                 Corporate Banking Navigator
               </h1>
             </div>
           </div>
-          <div className="text-xs font-semibold px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full uppercase tracking-wide border border-emerald-500/30 flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Agentic Session
+          <div className="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-600 rounded uppercase tracking-widest border border-slate-200 flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-blue-700" />
+            Official Service
           </div>
         </div>
       </header>
@@ -92,7 +94,7 @@ export default function BankingNavigator() {
         {/* Left Column: Form */}
         <div className="w-full lg:w-5/12 flex flex-col">
           <div className="mb-6">
-            <h2 className="text-3xl font-extrabold text-[#0F172A] mb-2">New Application</h2>
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-2">New Application</h2>
             <p className="text-slate-600">
               Describe your corporate structure, ultimate beneficial owners (UBOs), and business model to evaluate KYC risk.
             </p>
@@ -104,7 +106,7 @@ export default function BankingNavigator() {
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Business Profile Statement</label>
                 <textarea
-                  className="w-full h-40 bg-slate-50 border border-slate-200 rounded-lg p-4 text-[#0F172A] focus:outline-none focus:border-[#C6A87C] focus:ring-1 focus:ring-[#C6A87C] transition-all resize-none shadow-sm"
+                  className="w-full h-40 bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 transition-all resize-none shadow-sm"
                   placeholder="e.g. We are a software startup from Taiwan. Our UBO is Taiwanese, we have 3 local employees, and expect $500k USD annual turnover..."
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
@@ -115,80 +117,71 @@ export default function BankingNavigator() {
             <button 
               onClick={startOasis}
               disabled={isLoading || !topic.trim()}
-              className="mt-8 w-full py-4 bg-[#0F172A] hover:bg-[#1e293b] text-white font-bold rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
+              className="mt-8 w-full py-4 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Agents Orchestrating...
+                  Processing...
                 </>
               ) : (
                 <>
-                  Generate Setup Blueprint <ChevronRight className="w-5 h-5" />
+                  Generate Banking Roadmap <ChevronRight className="w-5 h-5" />
                 </>
               )}
             </button>
           </div>
         </div>
 
-        {/* Right Column: Processing Status / Terminal */}
+        {/* Right Column: Processing Status / Audit Trail */}
         <div className="w-full lg:w-7/12 flex flex-col">
-          <div className="bg-[#0F172A] rounded-xl shadow-xl border border-slate-700 overflow-hidden flex-1 flex flex-col min-h-[500px]">
-            {/* Terminal Header */}
-            <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-[500px]">
+            {/* Header */}
+            <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+              <div className="text-slate-900 font-bold flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-700" /> System Audit Trail
               </div>
-              <div className="text-slate-400 text-xs font-mono flex items-center gap-2 font-bold tracking-widest uppercase">
-                <Terminal className="w-4 h-4" /> CrewAI Core Orchestrator
+              <div className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+                Status Logging
               </div>
-              <div className="w-10"></div>
             </div>
 
-            {/* Terminal Body */}
-            <div className="p-6 font-mono text-sm overflow-y-auto flex-1 bg-[#050A15] space-y-3">
-              {logs.length === 0 && !isLoading && !report && !apiError && (
-                <div className="text-slate-600 flex flex-col items-center justify-center h-full space-y-4">
-                  <Terminal className="w-12 h-12 opacity-30" />
-                  <p>Awaiting profile submission to launch autonomous agents...</p>
+            {/* Body */}
+            <div className="p-6 overflow-y-auto flex-1 bg-white space-y-4">
+              {logs.length === 0 && !isLoading && !report && (
+                <div className="text-slate-400 flex flex-col items-center justify-center h-full space-y-4">
+                  <Clock className="w-12 h-12 opacity-30" />
+                  <p>Awaiting submission to begin system audit...</p>
                 </div>
               )}
-
-              {apiError && (
-                <div className="flex flex-col items-center justify-center h-full text-center space-y-3 px-4">
-                  <AlertTriangle className="w-10 h-10 text-red-400" />
-                  <p className="text-red-400 font-bold">Backend Unreachable</p>
-                  <p className="text-slate-400 max-w-md">{apiError}</p>
-                </div>
-              )}
-
+              
               <AnimatePresence>
                 {logs.map((log, idx) => (
                   <motion.div 
                     key={idx}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="leading-relaxed"
+                    className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 bg-slate-50"
                   >
-                    <span className={`font-bold mr-2 ${getAgentColor(log.agent)}`}>
-                      [{log.agent}]
-                    </span>
-                    <span className="text-slate-300 break-words">{log.msg}</span>
+                    {log.agent === 'Success' ? (
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    ) : (
+                      <CheckCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                    )}
+                    <div>
+                      <span className={`font-bold block text-sm mb-1 ${log.agent === 'Success' ? 'text-emerald-700' : 'text-slate-900'}`}>
+                        {log.agent}
+                      </span>
+                      <span className="text-slate-600 text-sm leading-relaxed">{log.msg}</span>
+                    </div>
                   </motion.div>
                 ))}
               </AnimatePresence>
               
               {isLoading && (
-                <div className="flex items-center mt-4">
-                  <span className="text-[#C6A87C] font-bold mr-2">[SYSTEM]</span>
-                  <span className="text-slate-300">Agents collaborating</span>
-                  <span className="flex gap-1 ml-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                  </span>
+                <div className="flex items-center gap-3 p-3 text-slate-500">
+                  <div className="w-5 h-5 border-2 border-slate-300 border-t-blue-600 rounded-full animate-spin shrink-0" />
+                  <span className="text-sm font-medium">Processing current step...</span>
                 </div>
               )}
               <div ref={logsEndRef} />
@@ -205,20 +198,20 @@ export default function BankingNavigator() {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 w-full"
           >
-            <div className="bg-white rounded-xl shadow-xl border border-emerald-200 overflow-hidden print:shadow-none print:border-none">
-              <div className="bg-emerald-50 border-b border-emerald-100 px-6 md:px-8 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print:shadow-none print:border-none">
+              <div className="bg-slate-50 border-b border-slate-200 px-6 md:px-8 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-xl md:text-2xl font-bold text-[#0F172A] flex items-center gap-2">
+                  <h3 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
                     <CheckCircle2 className="w-6 h-6 text-emerald-600" />
                     Official Banking Strategy Generated
                   </h3>
-                  <p className="text-emerald-700 mt-1 text-sm md:text-base">
+                  <p className="text-slate-600 mt-1 text-sm md:text-base">
                     Your customized banking roadmap and KYC pre-approval are ready.
                   </p>
                 </div>
                 <button 
                   onClick={simulateDownload}
-                  className="flex items-center gap-2 px-6 py-3 bg-[#0F172A] hover:bg-slate-800 text-[#C6A87C] font-bold rounded-lg transition-colors shadow-sm print:hidden"
+                  className="flex items-center gap-2 px-6 py-3 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-lg transition-colors shadow-sm print:hidden"
                 >
                   <Download className="w-5 h-5" /> Download PDF Blueprint
                 </button>

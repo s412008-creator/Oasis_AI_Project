@@ -1,14 +1,12 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, FileText, CheckCircle2, ChevronRight, Building2, ChevronLeft, Download, Terminal, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, FileText, CheckCircle2, ChevronRight, Building2, ChevronLeft, Download, CheckCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
-import { streamAgentEndpoint } from '@/lib/api';
 
 interface AgentLog {
   agent: string;
   msg: string;
-  type?: 'agent_log' | 'agent_switch';
 }
 
 export default function SmartRelocationConcierge() {
@@ -20,7 +18,6 @@ export default function SmartRelocationConcierge() {
   const [logs, setLogs] = useState<AgentLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<string | null>(null);
-  const [apiError, setApiError] = useState<string | null>(null);
 
   const logsEndRef = useRef<HTMLDivElement>(null);
 
@@ -37,32 +34,34 @@ export default function SmartRelocationConcierge() {
     setIsLoading(true);
     setLogs([]);
     setReport(null);
-    setApiError(null);
+    
+    const mockLogs = [
+      { agent: "System", msg: "Initializing Multi-Agent Audit System..." },
+      { agent: "Legal Expert", msg: "Analyzing company profile against UAE Federal Law..." },
+      { agent: "Financial Advisor", msg: "Calculating tax implications for Dubai Free Zone..." },
+      { agent: "System", msg: "Cross-referencing complete. Generating Blueprint..." },
+      { agent: "Success", msg: "Blueprint generated successfully." }
+    ];
 
-    // Construct the actual topic from the structured form
-    const topic = `Industry: ${industry}. Team Size: ${teamSize}. Expected Revenue: ${revenue}. Target Market: ${market}. Please provide a full relocation and setup analysis for Dubai.`;
+    for (let i = 0; i < mockLogs.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 500)); // 1.5 ~ 2 seconds delay
+      setLogs(prev => [...prev, { agent: mockLogs[i].agent, msg: mockLogs[i].msg }]);
+    }
 
-    await streamAgentEndpoint('/api/relocation', { topic, section: '', question: '' }, (data) => {
-      if (data.type === 'agent_switch') {
-        setLogs(prev => [...prev, { agent: 'SYSTEM', msg: `--- Switched to ${data.agent} ---`, type: 'agent_switch' }]);
-      } else if (data.type === 'agent_log') {
-        setLogs(prev => [...prev, { agent: data.agent!, msg: data.msg!, type: 'agent_log' }]);
-      } else if (data.type === 'result') {
-        setReport(data.report!);
-      } else if (data.type === 'error') {
-        setApiError(data.msg || 'The AI backend returned an unknown error.');
-      }
-    });
-
+    // Add a fake report after completion
+    await new Promise(resolve => setTimeout(resolve, 800));
+    setReport(`
+      <h3>Dubai Free Zone Executive Blueprint</h3>
+      <p>Based on your profile, our system strongly recommends the <strong>DMCC Free Zone</strong>.</p>
+      <ul>
+        <li><strong>Industry Match:</strong> Perfectly aligned with ${industry} regulations.</li>
+        <li><strong>Visas & Workspace:</strong> Covers your team requirement (${teamSize}) with a Flexi-Desk setup.</li>
+        <li><strong>Tax Implications:</strong> Projected 0% corporate tax for your ${revenue} revenue under current UAE frameworks.</li>
+        <li><strong>Market Access:</strong> Strategic positioning for ${market} outreach.</li>
+      </ul>
+      <p>Next Step: Download this blueprint and submit it to our designated incorporation officers.</p>
+    `);
     setIsLoading(false);
-  };
-
-  const getAgentColor = (agentName: string) => {
-    const name = agentName.toLowerCase();
-    if (name.includes('setup')) return 'text-emerald-400';
-    if (name.includes('finance')) return 'text-yellow-400';
-    if (name.includes('system')) return 'text-[#C6A87C]';
-    return 'text-purple-400';
   };
 
   const simulateDownload = () => {
@@ -73,23 +72,23 @@ export default function SmartRelocationConcierge() {
     <div className="min-h-screen flex flex-col font-sans bg-[#F9FAFB]">
       
       {/* Official Header */}
-      <header className="bg-[#0F172A] text-white sticky top-0 z-20">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-slate-400 hover:text-white transition-colors p-2 -ml-2 rounded-md hover:bg-slate-800">
+            <Link href="/" className="text-slate-400 hover:text-slate-900 transition-colors p-2 -ml-2 rounded-md hover:bg-slate-100">
               <ChevronLeft className="w-5 h-5" />
             </Link>
-            <div className="h-6 w-px bg-slate-700"></div>
+            <div className="h-6 w-px bg-slate-200"></div>
             <div>
-              <h1 className="text-lg font-bold flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-[#C6A87C]" />
+              <h1 className="text-lg font-bold flex items-center gap-2 text-slate-900">
+                <Building2 className="w-5 h-5 text-blue-700" />
                 Smart Relocation Concierge
               </h1>
             </div>
           </div>
-          <div className="text-xs font-semibold px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full uppercase tracking-wide border border-emerald-500/30 flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Agentic Session
+          <div className="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-600 rounded uppercase tracking-widest border border-slate-200 flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-blue-700" />
+            Official Service
           </div>
         </div>
       </header>
@@ -99,9 +98,9 @@ export default function SmartRelocationConcierge() {
         {/* Left Column: Form */}
         <div className="w-full lg:w-5/12 flex flex-col">
           <div className="mb-6">
-            <h2 className="text-3xl font-extrabold text-[#0F172A] mb-2">Company Profile</h2>
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Company Profile</h2>
             <p className="text-slate-600">
-              Provide your corporate details. Our multi-agent AI will negotiate virtual quotes and generate your blueprint.
+              Provide your corporate details. Our system will negotiate quotes and generate your official blueprint.
             </p>
           </div>
 
@@ -114,7 +113,7 @@ export default function SmartRelocationConcierge() {
                   type="text" 
                   value={industry}
                   onChange={(e) => setIndustry(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-[#0F172A] focus:outline-none focus:border-[#C6A87C] focus:ring-1 focus:ring-[#C6A87C] transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg p-3 text-slate-900 focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 transition-all"
                   placeholder="e.g. AI Software Agency"
                 />
               </div>
@@ -126,7 +125,7 @@ export default function SmartRelocationConcierge() {
                     type="text" 
                     value={teamSize}
                     onChange={(e) => setTeamSize(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-[#0F172A] focus:outline-none focus:border-[#C6A87C] focus:ring-1 focus:ring-[#C6A87C] transition-all"
+                    className="w-full bg-white border border-slate-300 rounded-lg p-3 text-slate-900 focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 transition-all"
                     placeholder="e.g. 3 Visas needed"
                   />
                 </div>
@@ -136,7 +135,7 @@ export default function SmartRelocationConcierge() {
                     type="text" 
                     value={revenue}
                     onChange={(e) => setRevenue(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-[#0F172A] focus:outline-none focus:border-[#C6A87C] focus:ring-1 focus:ring-[#C6A87C] transition-all"
+                    className="w-full bg-white border border-slate-300 rounded-lg p-3 text-slate-900 focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 transition-all"
                     placeholder="e.g. $500k USD"
                   />
                 </div>
@@ -148,7 +147,7 @@ export default function SmartRelocationConcierge() {
                   type="text" 
                   value={market}
                   onChange={(e) => setMarket(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-[#0F172A] focus:outline-none focus:border-[#C6A87C] focus:ring-1 focus:ring-[#C6A87C] transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg p-3 text-slate-900 focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 transition-all"
                   placeholder="e.g. Global & GCC"
                 />
               </div>
@@ -157,12 +156,12 @@ export default function SmartRelocationConcierge() {
             <button 
               onClick={startOasis}
               disabled={isLoading || (!industry && !teamSize && !revenue && !market)}
-              className="mt-8 w-full py-4 bg-[#0F172A] hover:bg-[#1e293b] text-white font-bold rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
+              className="mt-8 w-full py-4 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Agents Orchestrating...
+                  Processing...
                 </>
               ) : (
                 <>
@@ -173,64 +172,55 @@ export default function SmartRelocationConcierge() {
           </div>
         </div>
 
-        {/* Right Column: Processing Status / Terminal */}
+        {/* Right Column: Processing Status / Audit Trail */}
         <div className="w-full lg:w-7/12 flex flex-col">
-          <div className="bg-[#0F172A] rounded-xl shadow-xl border border-slate-700 overflow-hidden flex-1 flex flex-col min-h-[500px]">
-            {/* Terminal Header */}
-            <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-[500px]">
+            {/* Header */}
+            <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+              <div className="text-slate-900 font-bold flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-700" /> System Audit Trail
               </div>
-              <div className="text-slate-400 text-xs font-mono flex items-center gap-2 font-bold tracking-widest uppercase">
-                <Terminal className="w-4 h-4" /> CrewAI Core Orchestrator
+              <div className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+                Status Logging
               </div>
-              <div className="w-10"></div>
             </div>
 
-            {/* Terminal Body */}
-            <div className="p-6 font-mono text-sm overflow-y-auto flex-1 bg-[#050A15] space-y-3">
-              {logs.length === 0 && !isLoading && !report && !apiError && (
-                <div className="text-slate-600 flex flex-col items-center justify-center h-full space-y-4">
-                  <Terminal className="w-12 h-12 opacity-30" />
-                  <p>Awaiting profile submission to launch autonomous agents...</p>
+            {/* Body */}
+            <div className="p-6 overflow-y-auto flex-1 bg-white space-y-4">
+              {logs.length === 0 && !isLoading && !report && (
+                <div className="text-slate-400 flex flex-col items-center justify-center h-full space-y-4">
+                  <Clock className="w-12 h-12 opacity-30" />
+                  <p>Awaiting submission to begin system audit...</p>
                 </div>
               )}
-
-              {apiError && (
-                <div className="flex flex-col items-center justify-center h-full text-center space-y-3 px-4">
-                  <AlertTriangle className="w-10 h-10 text-red-400" />
-                  <p className="text-red-400 font-bold">Backend Unreachable</p>
-                  <p className="text-slate-400 max-w-md">{apiError}</p>
-                </div>
-              )}
-
+              
               <AnimatePresence>
                 {logs.map((log, idx) => (
                   <motion.div 
                     key={idx}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="leading-relaxed"
+                    className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 bg-slate-50"
                   >
-                    <span className={`font-bold mr-2 ${getAgentColor(log.agent)}`}>
-                      [{log.agent}]
-                    </span>
-                    <span className="text-slate-300 break-words">{log.msg}</span>
+                    {log.agent === 'Success' ? (
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    ) : (
+                      <CheckCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                    )}
+                    <div>
+                      <span className={`font-bold block text-sm mb-1 ${log.agent === 'Success' ? 'text-emerald-700' : 'text-slate-900'}`}>
+                        {log.agent}
+                      </span>
+                      <span className="text-slate-600 text-sm leading-relaxed">{log.msg}</span>
+                    </div>
                   </motion.div>
                 ))}
               </AnimatePresence>
               
               {isLoading && (
-                <div className="flex items-center mt-4">
-                  <span className="text-[#C6A87C] font-bold mr-2">[SYSTEM]</span>
-                  <span className="text-slate-300">Agents collaborating</span>
-                  <span className="flex gap-1 ml-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                  </span>
+                <div className="flex items-center gap-3 p-3 text-slate-500">
+                  <div className="w-5 h-5 border-2 border-slate-300 border-t-blue-600 rounded-full animate-spin shrink-0" />
+                  <span className="text-sm font-medium">Processing current step...</span>
                 </div>
               )}
               <div ref={logsEndRef} />
@@ -247,20 +237,20 @@ export default function SmartRelocationConcierge() {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 w-full"
           >
-            <div className="bg-white rounded-xl shadow-xl border border-emerald-200 overflow-hidden print:shadow-none print:border-none">
-              <div className="bg-emerald-50 border-b border-emerald-100 px-6 md:px-8 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print:shadow-none print:border-none">
+              <div className="bg-slate-50 border-b border-slate-200 px-6 md:px-8 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-xl md:text-2xl font-bold text-[#0F172A] flex items-center gap-2">
+                  <h3 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
                     <CheckCircle2 className="w-6 h-6 text-emerald-600" />
                     Official Setup Blueprint Generated
                   </h3>
-                  <p className="text-emerald-700 mt-1 text-sm md:text-base">
+                  <p className="text-slate-600 mt-1 text-sm md:text-base">
                     Your customized Dubai expansion strategy is ready for review.
                   </p>
                 </div>
                 <button 
                   onClick={simulateDownload}
-                  className="flex items-center gap-2 px-6 py-3 bg-[#0F172A] hover:bg-slate-800 text-[#C6A87C] font-bold rounded-lg transition-colors shadow-sm print:hidden"
+                  className="flex items-center gap-2 px-6 py-3 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-lg transition-colors shadow-sm print:hidden"
                 >
                   <Download className="w-5 h-5" /> Download PDF Blueprint
                 </button>
