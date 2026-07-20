@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, FileText, CheckCircle2, ChevronRight, Building2, ChevronLeft, Download, CheckCircle, Clock } from 'lucide-react';
+import { ShieldCheck, FileText, CheckCircle2, ChevronRight, Building2, ChevronLeft, Download, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 interface AgentLog {
@@ -18,6 +18,7 @@ export default function SmartRelocationConcierge() {
   const [logs, setLogs] = useState<AgentLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const logsEndRef = useRef<HTMLDivElement>(null);
 
@@ -34,7 +35,8 @@ export default function SmartRelocationConcierge() {
     setIsLoading(true);
     setLogs([]);
     setReport(null);
-    
+    setApiError(null);
+
     const topic = `Industry: ${industry}. Team Size: ${teamSize}. Expected Revenue: ${revenue}. Target Market: ${market}. Please provide a full relocation and setup analysis for Dubai.`;
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
@@ -88,6 +90,11 @@ export default function SmartRelocationConcierge() {
       }
     } catch (error) {
       console.error("Error during API call", error);
+      setApiError(
+        `Unable to reach the AI backend at ${backendUrl}. It may be offline or the API URL may be misconfigured. (${
+          error instanceof Error ? error.message : String(error)
+        })`
+      );
       setIsLoading(false);
     }
   };
@@ -215,13 +222,23 @@ export default function SmartRelocationConcierge() {
 
             {/* Body */}
             <div className="p-6 overflow-y-auto flex-1 bg-white space-y-4">
-              {logs.length === 0 && !isLoading && !report && (
+              {logs.length === 0 && !isLoading && !report && !apiError && (
                 <div className="text-slate-400 flex flex-col items-center justify-center h-full space-y-4">
                   <Clock className="w-12 h-12 opacity-30" />
                   <p>Awaiting submission to begin system audit...</p>
                 </div>
               )}
-              
+
+              {apiError && (
+                <div className="flex items-start gap-3 p-4 rounded-lg border border-red-200 bg-red-50">
+                  <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold block text-sm mb-1 text-red-700">Backend Unreachable</span>
+                    <span className="text-red-700/80 text-sm leading-relaxed">{apiError}</span>
+                  </div>
+                </div>
+              )}
+
               <AnimatePresence>
                 {logs.map((log, idx) => (
                   <motion.div 
