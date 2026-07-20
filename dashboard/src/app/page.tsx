@@ -9,16 +9,51 @@ export default function Home() {
       <Header />
 
       {/* Hero Section */}
-      <section className="bg-white border-b border-slate-200 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-3xl">
-          <h2 className="text-4xl font-extrabold text-[#0F172A] tracking-tight sm:text-5xl">
+      <section className="bg-[#0F172A] relative overflow-hidden py-20">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-white/90 text-sm font-medium mb-8">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            Official Dubai Corporate Services Portal
+          </div>
+          <h2 className="text-4xl font-extrabold text-white tracking-tight sm:text-5xl lg:text-6xl mb-6">
             Welcome to your digital <span className="text-[#C6A87C]">gateway to Dubai.</span>
           </h2>
-          <p className="mt-4 text-lg text-slate-600">
+          <p className="mt-4 text-xl text-slate-300 max-w-2xl mx-auto">
             Access automated, AI-driven government services for foreign investors. Fast, secure, and fully compliant with UAE regulations.
           </p>
         </div>
       </section>
+
+      {/* Trust Anchors & Metrics Section */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center text-center divide-x divide-slate-100">
+            <div className="px-4 flex flex-col items-center">
+              <div className="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Architecture</div>
+              <div className="font-bold text-[#0F172A] flex items-center gap-2">
+                <span className="bg-[#0F172A] text-white px-2 py-0.5 rounded text-xs font-mono">CrewAI</span>
+                Multi-Agent System
+              </div>
+            </div>
+            <div className="px-4 flex flex-col items-center">
+              <div className="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Average Setup Time</div>
+              <div className="font-bold text-[#0F172A] text-lg">5 Minutes <span className="text-xs text-emerald-600 font-normal">vs 3-6 weeks</span></div>
+            </div>
+            <div className="px-4 flex flex-col items-center">
+              <div className="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Enterprises Assisted</div>
+              <div className="font-bold text-[#0F172A] text-lg">1,200+ <span className="text-xs text-slate-400 font-normal">(Demo)</span></div>
+            </div>
+            <div className="px-4 flex flex-col items-center">
+              <div className="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Compliance Grounding</div>
+              <div className="font-bold text-[#0F172A] text-sm flex items-center gap-1">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                UAE Federal Law DB
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Services Grid */}
       <main className="flex-1 bg-slate-50 py-12">

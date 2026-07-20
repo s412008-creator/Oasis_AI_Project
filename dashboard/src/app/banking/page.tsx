@@ -1,240 +1,258 @@
-"use client";
-
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, Send, ShieldCheck, FileText, CheckCircle2, ChevronRight, Building2, ChevronLeft, Play } from 'lucide-react';
+import { ShieldCheck, FileText, CheckCircle2, ChevronRight, Landmark, ChevronLeft, Download, Terminal, Play } from 'lucide-react';
 import Link from 'next/link';
 
+interface AgentLog {
+  agent: string;
+  msg: string;
+  type?: 'agent_log' | 'agent_switch';
+}
+
 export default function BankingNavigator() {
-  const [topic, setTopic] = useState("我是一間台灣的 AI 軟體新創，團隊有 3 個人，年營收大概 100 萬美金。我想要搬到杜拜，幫我弄好一切。");
-  const [logs, setLogs] = useState<{agent: string, msg: string}[]>([]);
+  const [topic, setTopic] = useState('');
+  const [logs, setLogs] = useState<AgentLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const [report, setReport] = useState<string | null>(null);
+
+  const logsEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [logs]);
 
   const startOasis = async () => {
+    if (!topic.trim()) {
+      alert("Please provide your corporate details.");
+      return;
+    }
+
     setIsLoading(true);
     setLogs([]);
-    
+    setReport(null);
+
     try {
-      const res = await fetch("http://localhost:8000/api/relocation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic })
+      const response = await fetch('http://localhost:8000/api/banking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, section: '', question: '' })
       });
-      
-      const reader = res.body?.getReader();
+
+      if (!response.body) throw new Error('No body in response');
+
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let buffer = "";
-      
-      while (reader) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        
-        buffer += decoder.decode(value, { stream: true });
-        let newlineIdx;
-        while ((newlineIdx = buffer.indexOf('\n\n')) >= 0) {
-          const chunk = buffer.slice(0, newlineIdx);
-          buffer = buffer.slice(newlineIdx + 2);
-          
-          if (chunk.startsWith("data: ")) {
-            const dataStr = chunk.substring(6);
-            if (dataStr === "[DONE]") break;
-            
-            try {
-              const data = JSON.parse(dataStr);
-              if (data.type === "agent_log") {
-                setLogs(prev => [...prev, { agent: data.agent, msg: data.msg }]);
-              } else if (data.type === "result") {
-                 setLogs(prev => [...prev, { agent: "SYSTEM_RESULT", msg: data.report }]);
+      let done = false;
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.substring(6);
+              if (dataStr.trim() === '[DONE]') {
+                setIsLoading(false);
+                break;
               }
-            } catch (e) {
-                // Ignore parse errors
+              try {
+                const data = JSON.parse(dataStr);
+                if (data.type === 'agent_switch') {
+                  setLogs(prev => [...prev, { agent: 'SYSTEM', msg: `--- Switched to ${data.agent} ---`, type: 'agent_switch' }]);
+                } else if (data.type === 'agent_log') {
+                  setLogs(prev => [...prev, { agent: data.agent, msg: data.msg, type: 'agent_log' }]);
+                } else if (data.type === 'result') {
+                  setReport(data.report);
+                } else if (data.type === 'error') {
+                  setLogs(prev => [...prev, { agent: 'SYSTEM', msg: `Error: ${data.msg}`, type: 'agent_log' }]);
+                }
+              } catch (e) {
+                console.error("Failed to parse JSON:", dataStr);
+              }
             }
           }
         }
       }
-    } catch (err) {
-      console.error(err);
-      setLogs(prev => [...prev, { agent: "ERROR", msg: "Connection to official portal failed. Please ensure backend services are active." }]);
-    } finally {
+    } catch (error) {
+      console.error("Error during API call", error);
       setIsLoading(false);
     }
-  }
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [logs]);
-
-  const toggleListen = () => {
-    setIsListening(!isListening);
   };
 
-  const getAgentLabel = (agentName: string) => {
-    if (agentName.includes('Legal')) return { label: 'Legal & Policy Review', icon: <ShieldCheck className="w-5 h-5 text-white" />, bg: 'bg-[#0F172A]' };
-    if (agentName.includes('Finance')) return { label: 'Financial Audit', icon: <FileText className="w-5 h-5 text-white" />, bg: 'bg-[#0F172A]' };
-    if (agentName.includes('Concierge')) return { label: 'Concierge Synthesis', icon: <Building2 className="w-5 h-5 text-white" />, bg: 'bg-[#0F172A]' };
-    if (agentName === 'SYSTEM_RESULT') return { label: 'Final Official Document', icon: <CheckCircle2 className="w-5 h-5 text-white" />, bg: 'bg-[#C6A87C]' };
-    return { label: 'System Process', icon: <CheckCircle2 className="w-5 h-5 text-white" />, bg: 'bg-slate-400' };
+  const getAgentColor = (agentName: string) => {
+    const name = agentName.toLowerCase();
+    if (name.includes('kyc')) return 'text-red-400';
+    if (name.includes('matchmaker')) return 'text-emerald-400';
+    if (name.includes('system')) return 'text-[#C6A87C]';
+    return 'text-blue-400';
+  };
+
+  const simulateDownload = () => {
+    window.print();
   };
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-[#F9FAFB]">
       
       {/* Official Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
+      <header className="bg-[#0F172A] text-white sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-slate-400 hover:text-[#0F172A] transition-colors p-2 -ml-2 rounded-md hover:bg-slate-100">
+            <Link href="/" className="text-slate-400 hover:text-white transition-colors p-2 -ml-2 rounded-md hover:bg-slate-800">
               <ChevronLeft className="w-5 h-5" />
             </Link>
-            <div className="h-6 w-px bg-slate-200"></div>
+            <div className="h-6 w-px bg-slate-700"></div>
             <div>
-              <h1 className="text-lg font-bold text-[#0F172A] flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-[#C6A87C]" />
+              <h1 className="text-lg font-bold flex items-center gap-2">
+                <Landmark className="w-5 h-5 text-[#C6A87C]" />
                 Corporate Banking Navigator
               </h1>
             </div>
           </div>
-          <div className="text-xs font-semibold px-3 py-1 bg-blue-50 text-blue-700 rounded-full uppercase tracking-wide">
-            Secure Session
+          <div className="text-xs font-semibold px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full uppercase tracking-wide border border-emerald-500/30 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Agentic Session
           </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex flex-col lg:flex-row gap-8">
         
-        {/* Left Column: Input & Logs */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 className="text-lg font-bold text-[#0F172A] mb-2 flex items-center gap-2">
-              <Play className="w-5 h-5 text-[#C6A87C]" /> New Application
-            </h2>
-            <p className="text-sm text-slate-500 mb-4 leading-relaxed">
-              Describe your corporate structure, ultimate beneficial owners (UBOs), and business model to evaluate KYC risk and find the best bank.
+        {/* Left Column: Form */}
+        <div className="w-full lg:w-5/12 flex flex-col">
+          <div className="mb-6">
+            <h2 className="text-3xl font-extrabold text-[#0F172A] mb-2">New Application</h2>
+            <p className="text-slate-600">
+              Describe your corporate structure, ultimate beneficial owners (UBOs), and business model to evaluate KYC risk.
             </p>
-            <div className="flex justify-between items-center mb-4">
-              <label className="text-sm font-bold text-[#0F172A] uppercase tracking-wide">
-                Business Profile Statement
-              </label>
-              <button 
-                onClick={toggleListen}
-                className={`p-2 rounded-full transition-all ${isListening ? 'bg-[#0F172A] text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                title="Voice Input"
-              >
-                <Mic className="w-4 h-4" />
-              </button>
-            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
             
-            <textarea
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              className="w-full h-40 bg-white border border-slate-300 rounded-lg p-4 text-[#0F172A] focus:outline-none focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A] transition-all resize-none shadow-sm"
-              placeholder="Describe your company size, industry, and objectives..."
-            />
+            <div className="space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Business Profile Statement</label>
+                <textarea
+                  className="w-full h-40 bg-slate-50 border border-slate-200 rounded-lg p-4 text-[#0F172A] focus:outline-none focus:border-[#C6A87C] focus:ring-1 focus:ring-[#C6A87C] transition-all resize-none shadow-sm"
+                  placeholder="e.g. We are a software startup from Taiwan. Our UBO is Taiwanese, we have 3 local employees, and expect $500k USD annual turnover..."
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                />
+              </div>
+            </div>
             
             <button 
               onClick={startOasis}
-              disabled={isLoading}
-              className="mt-6 w-full py-3.5 bg-[#0F172A] hover:bg-[#1e293b] text-white font-bold rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
+              disabled={isLoading || !topic.trim()}
+              className="mt-8 w-full py-4 bg-[#0F172A] hover:bg-[#1e293b] text-white font-bold rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Processing Application...
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Agents Orchestrating...
                 </>
               ) : (
                 <>
-                  Submit to Authorities <ChevronRight className="w-5 h-5" />
+                  Generate Setup Blueprint <ChevronRight className="w-5 h-5" />
                 </>
               )}
             </button>
-            <p className="text-xs text-center text-slate-500 mt-4">
-              By submitting, you agree to the automated processing of your application data.
-            </p>
           </div>
         </div>
 
-        {/* Right Column: Vertical Stepper / Progress */}
-        <div className="w-full lg:w-7/12 gov-card p-8 min-h-[600px] flex flex-col relative overflow-hidden">
-          <div className="mb-6 pb-6 border-b border-slate-200">
-            <h3 className="text-xl font-bold text-[#0F172A]">Application Processing Status</h3>
-            <p className="text-sm text-slate-500 mt-1">Real-time official tracking log</p>
-          </div>
-
-          <div className="flex-1 overflow-y-auto relative px-2 py-4">
-            {logs.length === 0 && !isLoading && (
-              <div className="h-full flex items-center justify-center text-slate-400">
-                Awaiting application submission...
+        {/* Right Column: Processing Status / Terminal */}
+        <div className="w-full lg:w-7/12 flex flex-col">
+          <div className="bg-[#0F172A] rounded-xl shadow-xl border border-slate-700 overflow-hidden flex-1 flex flex-col min-h-[500px]">
+            {/* Terminal Header */}
+            <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
               </div>
-            )}
+              <div className="text-slate-400 text-xs font-mono flex items-center gap-2 font-bold tracking-widest uppercase">
+                <Terminal className="w-4 h-4" /> CrewAI Core Orchestrator
+              </div>
+              <div className="w-10"></div>
+            </div>
 
-            <div className="space-y-8 relative">
+            {/* Terminal Body */}
+            <div className="p-6 font-mono text-sm overflow-y-auto flex-1 bg-[#050A15] space-y-3">
+              {logs.length === 0 && !isLoading && !report && (
+                <div className="text-slate-600 flex flex-col items-center justify-center h-full space-y-4">
+                  <Terminal className="w-12 h-12 opacity-30" />
+                  <p>Awaiting profile submission to launch autonomous agents...</p>
+                </div>
+              )}
+              
               <AnimatePresence>
-              {logs.map((log, i) => {
-                const isFinal = log.agent === 'SYSTEM_RESULT';
-                const isError = log.agent === 'ERROR';
-                const { label, icon, bg } = getAgentLabel(log.agent);
-
-                // For final report, show full document
-                if (isFinal) {
-                  return (
-                    <motion.div 
-                      key={i}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mt-8 border-t-2 border-[#C6A87C] pt-8"
-                    >
-                      <div className="bg-white border border-[#C6A87C] rounded-lg shadow-sm overflow-hidden">
-                        <div className="bg-slate-50 border-b border-[#C6A87C]/30 px-6 py-4 flex items-center justify-between">
-                          <h4 className="font-bold text-[#0F172A] flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5 text-[#C6A87C]" />
-                            Official Corporate Banking Setup Guide
-                          </h4>
-                          <span className="text-xs font-bold bg-[#C6A87C]/10 text-[#8B7355] px-2 py-1 rounded">APPROVED</span>
-                        </div>
-                        <div className="p-6 text-[#0F172A] whitespace-pre-wrap leading-relaxed prose prose-sm max-w-none">
-                          {log.msg}
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                }
-
-                return (
+                {logs.map((log, idx) => (
                   <motion.div 
-                    key={i}
+                    key={idx}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="relative pl-10"
+                    className="leading-relaxed"
                   >
-                    {/* Stepper Line */}
-                    {i !== logs.length - 1 && (
-                      <div className={`stepper-line ${isLoading && i === logs.length - 1 ? 'stepper-line-active' : ''}`}></div>
-                    )}
-                    
-                    {/* Stepper Node */}
-                    <div className={`absolute left-0 top-0 w-6 h-6 rounded-full flex items-center justify-center ${isError ? 'bg-red-500' : bg} ring-4 ring-white z-10`}>
-                      <div className="scale-50">{icon}</div>
-                    </div>
-
-                    <div className="bg-white border border-slate-100 rounded-lg p-4 shadow-sm ml-2">
-                      <h5 className={`text-xs font-bold uppercase tracking-wider mb-2 ${isError ? 'text-red-600' : 'text-[#C6A87C]'}`}>
-                        {label}
-                      </h5>
-                      <p className="text-sm text-slate-700 leading-relaxed">
-                        {log.msg}
-                      </p>
-                    </div>
+                    <span className={`font-bold mr-2 ${getAgentColor(log.agent)}`}>
+                      [{log.agent}]
+                    </span>
+                    <span className="text-slate-300 break-words">{log.msg}</span>
                   </motion.div>
-                );
-              })}
+                ))}
               </AnimatePresence>
+              
+              {isLoading && (
+                <div className="flex items-center mt-4">
+                  <span className="text-[#C6A87C] font-bold mr-2">[SYSTEM]</span>
+                  <span className="text-slate-300">Agents collaborating</span>
+                  <span className="flex gap-1 ml-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                  </span>
+                </div>
+              )}
+              <div ref={logsEndRef} />
             </div>
-            <div ref={bottomRef} className="h-4" />
           </div>
         </div>
       </main>
+
+      {/* Official Report Section (Appears after completion) */}
+      <AnimatePresence>
+        {report && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 w-full"
+          >
+            <div className="bg-white rounded-xl shadow-xl border border-emerald-200 overflow-hidden print:shadow-none print:border-none">
+              <div className="bg-emerald-50 border-b border-emerald-100 px-6 md:px-8 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-xl md:text-2xl font-bold text-[#0F172A] flex items-center gap-2">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                    Official Banking Strategy Generated
+                  </h3>
+                  <p className="text-emerald-700 mt-1 text-sm md:text-base">
+                    Your customized banking roadmap and KYC pre-approval are ready.
+                  </p>
+                </div>
+                <button 
+                  onClick={simulateDownload}
+                  className="flex items-center gap-2 px-6 py-3 bg-[#0F172A] hover:bg-slate-800 text-[#C6A87C] font-bold rounded-lg transition-colors shadow-sm print:hidden"
+                >
+                  <Download className="w-5 h-5" /> Download PDF Blueprint
+                </button>
+              </div>
+              <div className="p-6 md:p-12 prose prose-slate max-w-none print:p-0">
+                <div dangerouslySetInnerHTML={{ __html: report.replace(/\n/g, '<br />') }} />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
