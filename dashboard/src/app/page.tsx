@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Building2, FileText, Users, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Building2, FileText, Users, ArrowRight, ShieldCheck, Landmark } from 'lucide-react';
 import Header from '../components/Header';
 
 export default function Home() {
@@ -72,6 +72,23 @@ export default function Home() {
                 <h4 className="text-xl font-bold text-[#0F172A] mb-3">B2B Matchmaking Bureau</h4>
                 <p className="text-slate-600 mb-8 flex-1">
                   Discover potential UAE clients or suppliers and auto-generate bilingual introductory communications.
+                </p>
+                <div className="flex items-center text-[#C6A87C] font-semibold group-hover:translate-x-2 transition-transform">
+                  Access Service <ArrowRight className="w-4 h-4 ml-2" />
+                </div>
+                <div className="absolute top-0 left-0 w-full h-1 bg-[#C6A87C] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+              </div>
+            </Link>
+
+          {/* Module 4: Banking Navigator */}
+            <Link href="/banking" className="group">
+              <div className="gov-card p-8 h-full flex flex-col relative overflow-hidden">
+                <div className="w-12 h-12 bg-blue-50 text-[#0F172A] rounded-lg flex items-center justify-center mb-6">
+                  <Landmark className="w-6 h-6" />
+                </div>
+                <h4 className="text-xl font-bold text-[#0F172A] mb-3">Corporate Banking Navigator</h4>
+                <p className="text-slate-600 mb-8 flex-1">
+                  Overcome the hardest part of UAE setup. Our KYC Expert and Banking Matchmaker will pre-screen your profile and connect you with the most suitable UAE banks.
                 </p>
                 <div className="flex items-center text-[#C6A87C] font-semibold group-hover:translate-x-2 transition-transform">
                   Access Service <ArrowRight className="w-4 h-4 ml-2" />

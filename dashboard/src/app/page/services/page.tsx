@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronLeft, Building2, FileText, Users, ArrowRight, Search } from 'lucide-react';
+import { ChevronLeft, Building2, FileText, Users, ArrowRight, Search, Landmark } from 'lucide-react';
 
 export default function ServicesPage() {
   return (
@@ -84,6 +84,25 @@ export default function ServicesPage() {
               <h4 className="text-xl font-bold text-[#0F172A] mb-3">B2B Matchmaking Bureau</h4>
               <p className="text-slate-600 mb-6 flex-1 text-sm leading-relaxed">
                 Connect your business with UAE's top enterprise clients. Our AI analyzes your product and auto-generates localized bilingual introductory communications.
+              </p>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded">Available 24/7</span>
+                <span className="flex items-center text-[#C6A87C] font-semibold group-hover:translate-x-1 transition-transform">
+                  Launch <ArrowRight className="w-4 h-4 ml-1" />
+                </span>
+              </div>
+            </div>
+          </Link>
+
+          {/* Module 4: Banking */}
+          <Link href="/banking" className="group">
+            <div className="gov-card p-8 h-full flex flex-col relative overflow-hidden bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-[#0F172A] text-white rounded-lg flex items-center justify-center mb-6 shadow-sm">
+                <Landmark className="w-6 h-6" />
+              </div>
+              <h4 className="text-xl font-bold text-[#0F172A] mb-3">Corporate Banking Navigator</h4>
+              <p className="text-slate-600 mb-6 flex-1 text-sm leading-relaxed">
+                Overcome the hardest part of UAE setup. Our KYC Expert and Banking Matchmaker will pre-screen your profile and connect you with the most suitable UAE banks.
               </p>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded">Available 24/7</span>
