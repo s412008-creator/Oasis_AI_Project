@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, Send, ShieldCheck, FileText, CheckCircle2, ChevronRight, Building2, ChevronLeft } from 'lucide-react';
+import { Mic, Send, ShieldCheck, FileText, CheckCircle2, ChevronRight, Building2, ChevronLeft, Play } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BankingNavigator() {
