@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, FileText, CheckCircle2, ChevronRight, ChevronLeft, Download, Terminal, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { streamAgentEndpoint } from '@/lib/api';
+import AuthGuard from '@/components/AuthGuard';
+
 
 interface AgentLog {
   agent: string;
@@ -66,147 +68,98 @@ export default function DocumentAuditor() {
   return (
     <AuthGuard>
       <div className="min-h-screen flex flex-col font-sans bg-[#F9FAFB]">
+      
+      {/* Official Header */}
+      <header className="bg-[#0F172A] text-white sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="text-slate-400 hover:text-white transition-colors p-2 -ml-2 rounded-md hover:bg-slate-800">
+              <ChevronLeft className="w-5 h-5" />
+            </Link>
+            <div className="h-6 w-px bg-slate-700"></div>
+            <div>
+              <h1 className="text-lg font-bold flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#C6A87C]" />
+                AI Document Auditor
+              </h1>
+            </div>
+          </div>
+          <div className="text-xs font-semibold px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full uppercase tracking-wide border border-emerald-500/30 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Agentic Session
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex flex-col lg:flex-row gap-8">
         
-        {/* Official Header */}
-        <header className="bg-[#0F172A] text-white sticky top-0 z-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/" className="text-slate-400 hover:text-white transition-colors p-2 -ml-2 rounded-md hover:bg-slate-800">
-                <ChevronLeft className="w-5 h-5" />
-              </Link>
-              <div className="h-6 w-px bg-slate-700"></div>
+        {/* Left Column: Form */}
+        <div className="w-full lg:w-5/12 flex flex-col">
+          <div className="mb-6">
+            <h2 className="text-3xl font-extrabold text-[#0F172A] mb-2">Upload Contract</h2>
+            <p className="text-slate-600">
+              Paste your English/Chinese contract below. Our Legal Agent will cross-reference it against the UAE Federal Commercial Companies Law.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+            
+            <div className="space-y-5">
               <div>
-                <h1 className="text-lg font-bold flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-[#C6A87C]" />
-                  AI Document Auditor
-                </h1>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Contract Content</label>
+                <textarea
+                  className="w-full h-40 bg-slate-50 border border-slate-200 rounded-lg p-4 text-[#0F172A] focus:outline-none focus:border-[#C6A87C] focus:ring-1 focus:ring-[#C6A87C] transition-all resize-none shadow-sm font-serif text-sm"
+                  placeholder="Paste contract clauses here..."
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                />
               </div>
             </div>
-            <div className="text-xs font-semibold px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full uppercase tracking-wide border border-emerald-500/30 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Agentic Session
-            </div>
-          </div>
-        </header>
-
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex flex-col lg:flex-row gap-8">
-          
-          {/* Left Column: Form */}
-          <div className="w-full lg:w-5/12 flex flex-col">
-            <div className="mb-6">
-              <h2 className="text-3xl font-extrabold text-[#0F172A] mb-2">Upload Contract</h2>
-              <p className="text-slate-600">
-                Paste your English/Chinese contract below. Our Legal Agent will cross-reference it against the UAE Federal Commercial Companies Law.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
-              
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Contract Content</label>
-                  <textarea
-                    className="w-full h-40 bg-slate-50 border border-slate-200 rounded-lg p-4 text-[#0F172A] focus:outline-none focus:border-[#C6A87C] focus:ring-1 focus:ring-[#C6A87C] transition-all resize-none shadow-sm font-serif text-sm"
-                    placeholder="Paste contract clauses here..."
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              <button 
-                onClick={startOasis}
-                disabled={isLoading || !topic.trim()}
-                className="mt-8 w-full py-4 bg-[#0F172A] hover:bg-[#1e293b] text-white font-bold rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Agents Orchestrating...
-                  </>
-                ) : (
-                  <>
-                    Generate Audit Report <ChevronRight className="w-5 h-5" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Right Column: Processing Status / Terminal */}
-          <div className="w-full lg:w-7/12 flex flex-col">
-            <div className="bg-[#0F172A] rounded-xl shadow-xl border border-slate-700 overflow-hidden flex-1 flex flex-col min-h-[500px]">
-              {/* Terminal Header */}
-              <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                  <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
-                </div>
-                <div className="text-slate-400 text-xs font-mono flex items-center gap-2 font-bold tracking-widest uppercase">
-                  <Terminal className="w-4 h-4" /> Legal Auditor Orchestrator
-                </div>
-                <div className="w-10"></div>
-              </div>
-
-              {/* Terminal Body */}
-              <div className="p-6 font-mono text-sm overflow-y-auto flex-1 bg-[#050A15] space-y-3">
-                {logs.length === 0 && !isLoading && !report && !apiError && (
-                  <div className="text-slate-600 flex flex-col items-center justify-center h-full space-y-4">
-                    <Terminal className="w-12 h-12 opacity-30" />
-                    <p>Awaiting contract submission to launch legal agents...</p>
-                  </div>
-                )}
-
-                {apiError && (
-                  <div className="flex flex-col items-center justify-center h-full text-center space-y-3 px-4">
-                    <AlertTriangle className="w-10 h-10 text-red-400" />
-                    <p className="text-red-400 font-bold">Backend Unreachable</p>
-                    <p className="text-slate-400 max-w-md">{apiError}</p>
-                  </div>
-                )}
-
-                <AnimatePresence>
-                  {logs.map((log, idx) => (
-                    <motion.div 
-                      key={idx}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="leading-relaxed"
-                    >
-                      <span className={`font-bold mr-2 ${getAgentColor(log.agent)}`}>
-                        [{log.agent}]
-                      </span>
-                      <span className="text-slate-300 break-words">{log.msg}</span>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                
-                {isLoading && (
-                  <div className="flex items-center mt-4">
-                    <span className="text-[#C6A87C] font-bold mr-2">[SYSTEM]</span>
-                    <span className="text-slate-300">Agents analyzing legal compliance</span>
-                    <span className="flex gap-1 ml-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                    </span>
-                  </div>
-                )}
-                <div ref={logsEndRef} />
-              </div>
-            </div>
-          </div>
-        </main>
-
-        {/* Official Report Section (Appears after completion) */}
-        <AnimatePresence>
-          {report && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 w-full"
+            
+            <button 
+              onClick={startOasis}
+              disabled={isLoading || !topic.trim()}
+              className="mt-8 w-full py-4 bg-[#0F172A] hover:bg-[#1e293b] text-white font-bold rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
             >
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Agents Orchestrating...
+                </>
+              ) : (
+                <>
+                  Generate Audit Report <ChevronRight className="w-5 h-5" />
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Right Column: Processing Status / Terminal */}
+        <div className="w-full lg:w-7/12 flex flex-col">
+          <div className="bg-[#0F172A] rounded-xl shadow-xl border border-slate-700 overflow-hidden flex-1 flex flex-col min-h-[500px]">
+            {/* Terminal Header */}
+            <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+              </div>
+              <div className="text-slate-400 text-xs font-mono flex items-center gap-2 font-bold tracking-widest uppercase">
+                <Terminal className="w-4 h-4" /> Legal Auditor Orchestrator
+              </div>
+              <div className="w-10"></div>
+            </div>
+
+            {/* Terminal Body */}
+            <div className="p-6 font-mono text-sm overflow-y-auto flex-1 bg-[#050A15] space-y-3">
+              {logs.length === 0 && !isLoading && !report && !apiError && (
+                <div className="text-slate-600 flex flex-col items-center justify-center h-full space-y-4">
+                  <Terminal className="w-12 h-12 opacity-30" />
+                  <p>Awaiting contract submission to launch legal agents...</p>
+                </div>
+              )}
+
               {apiError && (
                 <div className="flex flex-col items-center justify-center h-full text-center space-y-3 px-4">
                   <AlertTriangle className="w-10 h-10 text-red-400" />
@@ -282,5 +235,6 @@ export default function DocumentAuditor() {
         )}
       </AnimatePresence>
     </div>
+    </AuthGuard>
   );
 }
