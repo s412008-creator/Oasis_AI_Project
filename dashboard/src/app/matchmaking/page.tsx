@@ -64,173 +64,161 @@ export default function MatchmakingBureau() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-[#F9FAFB]">
-      
-      {/* Official Header */}
-      <header className="bg-[#0F172A] text-white sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-slate-400 hover:text-white transition-colors p-2 -ml-2 rounded-md hover:bg-slate-800">
-              <ChevronLeft className="w-5 h-5" />
-            </Link>
-            <div className="h-6 w-px bg-slate-700"></div>
-            <div>
-              <h1 className="text-lg font-bold flex items-center gap-2">
-                <Users className="w-5 h-5 text-[#C6A87C]" />
-                B2B Matchmaking Bureau
-              </h1>
-            </div>
-          </div>
-          <div className="text-xs font-semibold px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full uppercase tracking-wide border border-emerald-500/30 flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Agentic Session
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex flex-col lg:flex-row gap-8">
+    <AuthGuard>
+      <div className="min-h-screen flex flex-col font-sans bg-[#F9FAFB]">
         
-        {/* Left Column: Form */}
-        <div className="w-full lg:w-5/12 flex flex-col">
-          <div className="mb-6">
-            <h2 className="text-3xl font-extrabold text-[#0F172A] mb-2">Find Local Partners</h2>
-            <p className="text-slate-600">
-              Describe your product and ideal clients. Our agents will analyze the Dubai market and generate personalized outreach strategies.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
-            
-            <div className="space-y-5">
+        {/* Official Header */}
+        <header className="bg-[#0F172A] text-white sticky top-0 z-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/" className="text-slate-400 hover:text-white transition-colors p-2 -ml-2 rounded-md hover:bg-slate-800">
+                <ChevronLeft className="w-5 h-5" />
+              </Link>
+              <div className="h-6 w-px bg-slate-700"></div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Product & Target Audience</label>
-                <textarea
-                  className="w-full h-40 bg-slate-50 border border-slate-200 rounded-lg p-4 text-[#0F172A] focus:outline-none focus:border-[#C6A87C] focus:ring-1 focus:ring-[#C6A87C] transition-all resize-none shadow-sm text-sm"
-                  placeholder="e.g. We sell enterprise HR software. Our target clients are large construction companies in the UAE."
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                />
+                <h1 className="text-lg font-bold flex items-center gap-2">
+                  <Users className="w-5 h-5 text-[#C6A87C]" />
+                  B2B Matchmaking
+                </h1>
               </div>
             </div>
-            
-            <button 
-              onClick={startOasis}
-              disabled={isLoading || !topic.trim()}
-              className="mt-8 w-full py-4 bg-[#0F172A] hover:bg-[#1e293b] text-white font-bold rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Agents Orchestrating...
-                </>
-              ) : (
-                <>
-                  Generate Outreach Plan <ChevronRight className="w-5 h-5" />
-                </>
-              )}
-            </button>
+            <div className="text-xs font-semibold px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full uppercase tracking-wide border border-emerald-500/30 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Agentic Session
+            </div>
           </div>
-        </div>
+        </header>
 
-        {/* Right Column: Processing Status / Terminal */}
-        <div className="w-full lg:w-7/12 flex flex-col">
-          <div className="bg-[#0F172A] rounded-xl shadow-xl border border-slate-700 overflow-hidden flex-1 flex flex-col min-h-[500px]">
-            {/* Terminal Header */}
-            <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
-              </div>
-              <div className="text-slate-400 text-xs font-mono flex items-center gap-2 font-bold tracking-widest uppercase">
-                <Terminal className="w-4 h-4" /> B2B Matchmaking Orchestrator
-              </div>
-              <div className="w-10"></div>
+        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex flex-col lg:flex-row gap-8">
+          
+          {/* Left Column: Form */}
+          <div className="w-full lg:w-5/12 flex flex-col">
+            <div className="mb-6">
+              <h2 className="text-3xl font-extrabold text-[#0F172A] mb-2">Partner Search</h2>
+              <p className="text-slate-600">
+                Describe your ideal local partner. Our agents will scan registries and generate introductions.
+              </p>
             </div>
 
-            {/* Terminal Body */}
-            <div className="p-6 font-mono text-sm overflow-y-auto flex-1 bg-[#050A15] space-y-3">
-              {logs.length === 0 && !isLoading && !report && !apiError && (
-                <div className="text-slate-600 flex flex-col items-center justify-center h-full space-y-4">
-                  <Terminal className="w-12 h-12 opacity-30" />
-                  <p>Awaiting product details to launch matchmaking agents...</p>
-                </div>
-              )}
-
-              {apiError && (
-                <div className="flex flex-col items-center justify-center h-full text-center space-y-3 px-4">
-                  <AlertTriangle className="w-10 h-10 text-red-400" />
-                  <p className="text-red-400 font-bold">Backend Unreachable</p>
-                  <p className="text-slate-400 max-w-md">{apiError}</p>
-                </div>
-              )}
-
-              <AnimatePresence>
-                {logs.map((log, idx) => (
-                  <motion.div 
-                    key={idx}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="leading-relaxed"
-                  >
-                    <span className={`font-bold mr-2 ${getAgentColor(log.agent)}`}>
-                      [{log.agent}]
-                    </span>
-                    <span className="text-slate-300 break-words">{log.msg}</span>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
               
-              {isLoading && (
-                <div className="flex items-center mt-4">
-                  <span className="text-[#C6A87C] font-bold mr-2">[SYSTEM]</span>
-                  <span className="text-slate-300">Agents finding partners</span>
-                  <span className="flex gap-1 ml-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                  </span>
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Ideal Partner Profile</label>
+                  <textarea 
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-[#0F172A] focus:outline-none focus:border-[#C6A87C] focus:ring-1 focus:ring-[#C6A87C] transition-all min-h-[200px]"
+                    placeholder="e.g. We are looking for a local logistics distributor in Dubai with a fleet of over 50 trucks..."
+                  />
                 </div>
-              )}
-              <div ref={logsEndRef} />
+              </div>
+
+              <button
+                onClick={startOasis}
+                disabled={isLoading}
+                className="mt-8 w-full py-4 bg-[#0F172A] hover:bg-[#1e293b] text-white font-bold rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    Scanning via Agents...
+                  </>
+                ) : (
+                  <>
+                    Find Partners <ChevronRight className="w-5 h-5" />
+                  </>
+                )}
+              </button>
             </div>
           </div>
-        </div>
-      </main>
 
-      {/* Official Report Section (Appears after completion) */}
-      <AnimatePresence>
-        {report && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 w-full"
-          >
-            <div className="bg-white rounded-xl shadow-xl border border-emerald-200 overflow-hidden print:shadow-none print:border-none">
-              <div className="bg-emerald-50 border-b border-emerald-100 px-6 md:px-8 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-xl md:text-2xl font-bold text-[#0F172A] flex items-center gap-2">
-                    <CheckCircle2 className="w-6 h-6 text-emerald-600" />
-                    Official Partnership Blueprint Generated
-                  </h3>
-                  <p className="text-emerald-700 mt-1 text-sm md:text-base">
-                    Your localized business development strategy is ready.
-                  </p>
+          {/* Right Column: Terminal */}
+          <div className="w-full lg:w-7/12 flex flex-col">
+            <div className="bg-[#0F172A] rounded-xl shadow-xl border border-slate-700 overflow-hidden flex-1 flex flex-col min-h-[500px]">
+              
+              {/* Terminal Header */}
+              <div className="bg-[#1e293b] px-4 py-3 border-b border-slate-700 flex items-center justify-between">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
                 </div>
-                <button 
-                  onClick={simulateDownload}
-                  className="flex items-center gap-2 px-6 py-3 bg-[#0F172A] hover:bg-slate-800 text-[#C6A87C] font-bold rounded-lg transition-colors shadow-sm print:hidden"
-                >
-                  <Download className="w-5 h-5" /> Download PDF Blueprint
-                </button>
+                <div className="text-[10px] font-mono text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <Terminal className="w-3 h-3" />
+                  CrewAI Core Orchestrator
+                </div>
               </div>
-              <div className="p-6 md:p-12 prose prose-slate max-w-none print:p-0">
-                <div dangerouslySetInnerHTML={{ __html: report.replace(/\n/g, '<br />') }} />
+
+              {/* Terminal Body */}
+              <div className="flex-1 p-6 overflow-y-auto font-mono text-sm leading-relaxed space-y-3 bg-[#0F172A]">
+                {logs.length === 0 && !apiError && !isLoading && (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-500 space-y-4">
+                    <ShieldCheck className="w-12 h-12 text-slate-700" />
+                    <p>Awaiting profile submission to launch autonomous agents...</p>
+                  </div>
+                )}
+
+                {apiError && (
+                  <div className="h-full flex flex-col items-center justify-center text-red-400 space-y-4 text-center px-6">
+                    <AlertTriangle className="w-12 h-12 text-red-500" />
+                    <h3 className="font-bold text-lg">Backend Unreachable</h3>
+                    <p className="text-sm opacity-80 whitespace-pre-wrap">{apiError}</p>
+                  </div>
+                )}
+
+                <AnimatePresence>
+                  {logs.map((log, idx) => (
+                    <motion.div 
+                      key={idx}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={`flex gap-3 ${log.type === 'agent_switch' ? 'mt-6 mb-2' : ''}`}
+                    >
+                      <span className={`font-bold shrink-0 ${getAgentColor(log.agent)}`}>
+                        {log.type === 'agent_switch' ? '' : `[${log.agent}]`}
+                      </span>
+                      <span className={log.type === 'agent_switch' ? 'text-slate-500 font-bold' : 'text-slate-300'}>
+                        {log.msg}
+                      </span>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                <div ref={logsEndRef} />
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          </div>
+
+        </main>
+
+        <AnimatePresence>
+          {report && (
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 w-full"
+            >
+              <div className="bg-white rounded-xl shadow-xl border border-[#C6A87C] overflow-hidden">
+                <div className="bg-[#0F172A] px-8 py-5 border-b border-[#C6A87C]/30 flex justify-between items-center print:bg-white print:border-b-2 print:border-black">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+                    <h3 className="text-xl font-bold text-white print:text-black">Official Matchmaking Report Generated</h3>
+                  </div>
+                  <button 
+                    onClick={simulateDownload}
+                    className="flex items-center gap-2 px-6 py-3 bg-[#0F172A] hover:bg-slate-800 text-[#C6A87C] font-bold rounded-lg transition-colors shadow-sm print:hidden"
+                  >
+                    <Download className="w-4 h-4" /> Download PDF
+                  </button>
+                </div>
+                <div className="p-8 prose prose-slate max-w-none text-[#0F172A]">
+                  <div dangerouslySetInnerHTML={{ __html: report }} />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </AuthGuard>
   );
 }

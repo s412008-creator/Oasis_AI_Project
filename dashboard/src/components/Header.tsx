@@ -1,7 +1,11 @@
+"use client";
 import Link from 'next/link';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, User as UserIcon, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
+  const { isLoggedIn, userName, logout } = useAuth();
+
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
       {/* Official Government Top Bar */}
@@ -27,13 +31,37 @@ export default function Header() {
           </div>
         </a>
 
-        {/* Navigation Section */}
-        <nav className="hidden md:flex gap-6 text-sm font-medium text-[#0F172A]">
-          {/* Removed the 'Home' link as requested */}
-          <Link href="/page/services" className="hover:text-[#C6A87C] transition-colors">Services</Link>
-          <Link href="/page/regulations" className="hover:text-[#C6A87C] transition-colors">Regulations</Link>
-          <Link href="/page/support" className="hover:text-[#C6A87C] transition-colors">Help & Support</Link>
-        </nav>
+        {/* Navigation & Auth Section */}
+        <div className="flex items-center gap-6">
+          <nav className="hidden md:flex gap-6 text-sm font-medium text-[#0F172A]">
+            <Link href="/page/services" className="hover:text-[#C6A87C] transition-colors">Services</Link>
+            <Link href="/page/regulations" className="hover:text-[#C6A87C] transition-colors">Regulations</Link>
+            <Link href="/page/support" className="hover:text-[#C6A87C] transition-colors">Help & Support</Link>
+          </nav>
+          
+          <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
+
+          {isLoggedIn ? (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[#0F172A] text-[#C6A87C] flex items-center justify-center">
+                  <UserIcon className="w-4 h-4" />
+                </div>
+                <div className="hidden sm:block text-sm font-bold text-[#0F172A]">
+                  {userName}
+                  <div className="text-[10px] text-emerald-600 uppercase font-black tracking-widest">Verified Entity</div>
+                </div>
+              </div>
+              <button onClick={logout} className="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-md hover:bg-slate-100" title="Logout">
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <Link href="/login" className="bg-[#0F172A] hover:bg-slate-800 text-white px-5 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm">
+              Login / Register
+            </Link>
+          )}
+        </div>
 
       </div>
     </header>
