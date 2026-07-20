@@ -2,7 +2,7 @@
 // Cloudflare Pages project's environment variables for production; falls
 // back to the local dev server when unset.
 export const API_BASE_URL =
-  (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+  (process.env.NEXT_PUBLIC_API_URL || 'https://april-bread-pgp-buffer.trycloudflare.com').replace(/\/$/, '');
 
 export interface AgentStreamEvent {
   type: 'agent_switch' | 'agent_log' | 'result' | 'error';

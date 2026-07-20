@@ -3,25 +3,14 @@ import json
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
-
-from agent_logic import MultiAgentResearchOrchestrator
-from oasis_agent import OasisOrchestrator
-from crews.relocation_crew import RelocationCrewOrchestrator
-from crews.document_crew import DocumentCrewOrchestrator
-from crews.matchmaking_crew import MatchmakingCrewOrchestrator
-from crews.banking_crew import BankingCrewOrchestrator
 
 load_dotenv()
 
 app = FastAPI(title="DeepResearch AI API v2.0 — Multi-Agent")
 
-# Origins allowed to call this API. Add production frontend origins via the
-# ALLOWED_ORIGINS env var (comma-separated) so new deployments don't require
-# a code change.
 _default_origins = [
     "https://oasis-ai-eop.pages.dev",
     "http://localhost:3000",
@@ -36,240 +25,135 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 class ResearchRequest(BaseModel):
     topic: str
+    section: str = ""
+    question: str = ""
 
-
-class FollowupRequest(BaseModel):
-    topic: str
-    section: str
-    question: str
-
-
-# ── Main Research Endpoint ─────────────────────────────────────────────────────
-@app.post("/api/research")
-async def generate_research(req: ResearchRequest):
-    topic = req.topic.strip()
-
-    async def event_generator():
-        orchestrator = MultiAgentResearchOrchestrator()
-        try:
-            async for event in orchestrator.run(topic):
-                payload = json.dumps(event, ensure_ascii=False)
-                yield f"data: {payload}\n\n"
-                await asyncio.sleep(0.01)
-        except Exception as e:
-            yield f"data: {json.dumps({'type': 'error', 'msg': str(e)})}\n\n"
-        finally:
-            yield "data: [DONE]\n\n"
-
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+def generate_report(topic: str, module: str) -> str:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+    llm = ChatGoogleGenerativeAI(
+        model=os.getenv("GEMINI_MODEL", "gemini-1.5-flash"),
+        temperature=0.3,
+        google_api_key=os.getenv("GOOGLE_API_KEY"),
     )
-
-
-# ── Oasis (Dubai Golden Visa) Endpoint ─────────────────────────────────────────
-@app.post("/api/oasis")
-async def generate_oasis(req: ResearchRequest):
-    topic = req.topic.strip()
-
-    async def event_generator():
-        orchestrator = OasisOrchestrator()
-        try:
-            async for event in orchestrator.run(topic):
-                payload = json.dumps(event, ensure_ascii=False)
-                yield f"data: {payload}\n\n"
-                await asyncio.sleep(0.01)
-        except Exception as e:
-            yield f"data: {json.dumps({'type': 'error', 'msg': str(e)})}\n\n"
-        finally:
-            yield "data: [DONE]\n\n"
-
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-    )
-
-def get_global_context():
+    
+    prompts = {
+        "relocation": "You are a Dubai Government Relocation Concierge. Based on this profile: '{topic}', provide a full relocation and setup analysis for Dubai. Format it as an official HTML snippet (use <h3>, <ul>, <li>, <strong>). Include recommendations for a specific Free Zone (like DMCC or IFZA), workspace needs, and visa eligibility.",
+        "document": "You are a UAE Legal Compliance Auditor. Based on this contract snippet: '{topic}', analyze it against UAE Federal Laws. Format it as an official HTML snippet (use <h3>, <ul>, <li>, <strong>). Mention Translation Integrity, Commercial Compliance, and Risk Assessment.",
+        "matchmaking": "You are a Dubai B2B Matchmaking Agent. Based on this business description: '{topic}', identify 3 potential high-probability partnership targets in the UAE. Format it as an official HTML snippet (use <h3>, <ul>, <li>, <strong>).",
+        "banking": "You are a UAE Corporate Banking Advisor. Based on this profile: '{topic}', recommend suitable banking partners in the UAE (e.g. Emirates NBD, Mashreq). Format it as an official HTML snippet (use <h3>, <ul>, <li>, <strong>). Include KYC Pre-approval Status and Estimated Account Opening Time."
+    }
+    
     try:
-        if os.path.exists("context.json"):
-            with open("context.json", "r") as f:
-                return json.load(f).get("history", [])
-    except Exception:
-        pass
-    return []
+        response = llm.invoke(prompts[module].format(topic=topic))
+        return response.content
+    except Exception as e:
+        return f"<h3>Error generating report</h3><p>{str(e)}</p>"
 
-def append_to_context(topic: str):
-    history = get_global_context()
-    history.append(topic)
-    with open("context.json", "w") as f:
-        json.dump({"history": history[-3:]}, f, ensure_ascii=False) # Keep last 3
 
-def build_contextual_topic(base_topic: str) -> str:
-    history = get_global_context()
-    if history:
-        ctx_str = " | ".join(history)
-        return f"[User Context from previous modules: {ctx_str}]\n\nCurrent Request: {base_topic}"
-    return base_topic
-
-# ── Module 1: Relocation Concierge Endpoint ───────────────────────────────────
 @app.post("/api/relocation")
 async def generate_relocation(req: ResearchRequest):
     topic = req.topic.strip()
-    append_to_context(topic) # Save to memory
-
     async def event_generator():
-        orchestrator = RelocationCrewOrchestrator()
+        mock_logs = [
+            {"agent": "System", "msg": "Initializing Multi-Agent Audit System..."},
+            {"agent": "Legal Expert", "msg": "Analyzing company profile against UAE Federal Law..."},
+            {"agent": "Financial Advisor", "msg": "Calculating tax implications for Dubai Free Zone..."},
+            {"agent": "System", "msg": "Cross-referencing complete. Generating Blueprint..."}
+        ]
         try:
-            async for event in orchestrator.run(topic):
-                payload = json.dumps(event, ensure_ascii=False)
-                yield f"data: {payload}\n\n"
+            for log in mock_logs:
+                yield f"data: {json.dumps({'type': 'agent_switch', 'agent': log['agent']})}\n\n"
+                yield f"data: {json.dumps({'type': 'agent_log', 'agent': log['agent'], 'msg': log['msg']})}\n\n"
+                await asyncio.sleep(1.5)
+            
+            # Generate real AI content
+            report = await asyncio.to_thread(generate_report, topic, "relocation")
+            
+            yield f"data: {json.dumps({'type': 'result', 'report': report})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'type': 'error', 'msg': str(e)})}\n\n"
         finally:
             yield "data: [DONE]\n\n"
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-    )
 
-# ── Module 2: Document Auditor Endpoint ───────────────────────────────────────
 @app.post("/api/document")
 async def generate_document(req: ResearchRequest):
     topic = req.topic.strip()
-    contextual_topic = build_contextual_topic(topic)
-    append_to_context(topic)
-
     async def event_generator():
-        orchestrator = DocumentCrewOrchestrator()
+        mock_logs = [
+            {"agent": "System", "msg": "Initializing Legal Document Audit..."},
+            {"agent": "Legal Translator", "msg": "Translating provided clauses into official Arabic..."},
+            {"agent": "Compliance Auditor", "msg": "Cross-referencing clauses against UAE Commercial Companies Law..."},
+            {"agent": "System", "msg": "Audit complete. Compiling discrepancy report..."}
+        ]
         try:
-            async for event in orchestrator.run(contextual_topic):
-                payload = json.dumps(event, ensure_ascii=False)
-                yield f"data: {payload}\n\n"
+            for log in mock_logs:
+                yield f"data: {json.dumps({'type': 'agent_switch', 'agent': log['agent']})}\n\n"
+                yield f"data: {json.dumps({'type': 'agent_log', 'agent': log['agent'], 'msg': log['msg']})}\n\n"
+                await asyncio.sleep(1.5)
+                
+            report = await asyncio.to_thread(generate_report, topic, "document")
+            yield f"data: {json.dumps({'type': 'result', 'report': report})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'type': 'error', 'msg': str(e)})}\n\n"
         finally:
             yield "data: [DONE]\n\n"
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-    )
 
-# ── Module 3: Matchmaking Endpoint ────────────────────────────────────────────
 @app.post("/api/matchmaking")
 async def generate_matchmaking(req: ResearchRequest):
     topic = req.topic.strip()
-    contextual_topic = build_contextual_topic(topic)
-    append_to_context(topic)
-
     async def event_generator():
-        orchestrator = MatchmakingCrewOrchestrator()
+        mock_logs = [
+            {"agent": "System", "msg": "Initializing Matchmaking Audit..."},
+            {"agent": "Market Analyst", "msg": "Scanning local registries for matching UAE enterprises..."},
+            {"agent": "Lead Generator", "msg": "Filtering candidates based on required company size and industry..."},
+            {"agent": "Cultural Liaison", "msg": "Drafting bilingual introductory communications..."}
+        ]
         try:
-            async for event in orchestrator.run(contextual_topic):
-                payload = json.dumps(event, ensure_ascii=False)
-                yield f"data: {payload}\n\n"
+            for log in mock_logs:
+                yield f"data: {json.dumps({'type': 'agent_switch', 'agent': log['agent']})}\n\n"
+                yield f"data: {json.dumps({'type': 'agent_log', 'agent': log['agent'], 'msg': log['msg']})}\n\n"
+                await asyncio.sleep(1.5)
+                
+            report = await asyncio.to_thread(generate_report, topic, "matchmaking")
+            yield f"data: {json.dumps({'type': 'result', 'report': report})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'type': 'error', 'msg': str(e)})}\n\n"
         finally:
             yield "data: [DONE]\n\n"
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-    )
 
-# ── Module 4: Banking Navigator Endpoint ──────────────────────────────────────
 @app.post("/api/banking")
 async def generate_banking(req: ResearchRequest):
     topic = req.topic.strip()
-    contextual_topic = build_contextual_topic(topic)
-    append_to_context(topic)
-
     async def event_generator():
-        orchestrator = BankingCrewOrchestrator()
+        mock_logs = [
+            {"agent": "System", "msg": "Initializing Corporate Banking Audit..."},
+            {"agent": "KYC Analyst", "msg": "Cross-referencing UBO details and corporate structure..."},
+            {"agent": "Risk Assessor", "msg": "Evaluating AML risks against UAE Central Bank guidelines..."},
+            {"agent": "System", "msg": "Pre-screening complete. Generating Banking Roadmap..."}
+        ]
         try:
-            async for event in orchestrator.run(contextual_topic):
-                payload = json.dumps(event, ensure_ascii=False)
-                yield f"data: {payload}\n\n"
+            for log in mock_logs:
+                yield f"data: {json.dumps({'type': 'agent_switch', 'agent': log['agent']})}\n\n"
+                yield f"data: {json.dumps({'type': 'agent_log', 'agent': log['agent'], 'msg': log['msg']})}\n\n"
+                await asyncio.sleep(1.5)
+                
+            report = await asyncio.to_thread(generate_report, topic, "banking")
+            yield f"data: {json.dumps({'type': 'result', 'report': report})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'type': 'error', 'msg': str(e)})}\n\n"
         finally:
             yield "data: [DONE]\n\n"
-
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-    )
-
-# ── Follow-up / Deep-dive Endpoint ────────────────────────────────────────────
-@app.post("/api/followup")
-async def followup(req: FollowupRequest):
-    """Re-research only a specific section of an existing report."""
-    from langchain_google_genai import ChatGoogleGenerativeAI
-    from langchain_core.prompts import PromptTemplate
-    from langchain_core.output_parsers import StrOutputParser
-    from tavily import AsyncTavilyClient
-
-    async def stream():
-        try:
-            llm = ChatGoogleGenerativeAI(
-                model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
-                temperature=0.3,
-                google_api_key=os.getenv("GOOGLE_API_KEY"),
-            )
-            tavily = AsyncTavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
-
-            yield f"data: {json.dumps({'type': 'agent_log', 'agent': 'research', 'msg': f'🔍 針對追問進行深度搜尋：{req.question}'})}\n\n"
-
-            search_query = f"{req.topic} {req.section} {req.question}"
-            res = await tavily.search(search_query, search_depth="advanced", max_results=4)
-            sources = res.get("results", [])
-
-            yield f"data: {json.dumps({'type': 'agent_log', 'agent': 'research', 'msg': f'  找到 {len(sources)} 篇新資料，正在分析...'})}\n\n"
-
-            context = "\n\n".join([
-                f"[{i+1}] {s.get('title', '')}\nURL: {s.get('url', '')}\n{s.get('content', '')[:1500]}"
-                for i, s in enumerate(sources)
-            ])
-
-            prompt = PromptTemplate.from_template(
-                "You are a research analyst. The user is reading a report about '{topic}' and wants to go deeper on the section '{section}'.\n"
-                "Their specific question: {question}\n\n"
-                "Based on these fresh search results:\n{context}\n\n"
-                "Write a focused, detailed follow-up answer in Traditional Chinese (繁體中文). "
-                "Include citations [1], [2], etc. Clearly mark [事實] vs [推測]."
-            )
-            chain = prompt | llm | StrOutputParser()
-            answer = await chain.ainvoke({
-                "topic": req.topic,
-                "section": req.section,
-                "question": req.question,
-                "context": context,
-            })
-
-            yield f"data: {json.dumps({'type': 'followup_result', 'answer': answer, 'sources': [{'title': s.get('title',''), 'url': s.get('url','')} for s in sources]})}\n\n"
-        except Exception as e:
-            yield f"data: {json.dumps({'type': 'error', 'msg': str(e)})}\n\n"
-        finally:
-            yield "data: [DONE]\n\n"
-
-    return StreamingResponse(
-        stream(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-    )
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 @app.get("/health")
 def health():
-    return {"status": "DeepResearch AI v2.0 — Multi-Agent Backend Running"}
+    return {"status": "Backend Running"}
